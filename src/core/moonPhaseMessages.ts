@@ -18,34 +18,55 @@ export function getPlayfulMoonMessage(
   const getRandomElement = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
   let baseMessage = `The moon is a ${phase} today, shining at ${illuminationFixed}%!`;
+  let emoji = '';
+  let hashtag = '#MoonPhase';
 
-  // Add playful remarks based on phase with a lycanthropic touch
+  // Determine emoji and specific hashtag based on phase
   switch (phase) {
     case "New Moon":
+      emoji = '🌑';
+      hashtag = '#NewMoon';
       baseMessage = `It's a New Moon, barely a whisper! Illumination: ${illuminationFixed}%. ${getRandomElement(lycanthropicPhrases)}`;
       break;
     case "Waxing Crescent":
+      emoji = '🌒';
+      hashtag = '#WaxingCrescent';
       baseMessage = `Look up! Waxing Crescent, brighter at ${illuminationFixed}%. ${getRandomElement(lycanthropicPhrases)}`;
       break;
     case "First Quarter":
+      emoji = '🌓';
+      hashtag = '#FirstQuarter';
       baseMessage = `Halfway to full! First Quarter moon ${illuminationFixed}% lit. ${getRandomElement(lycanthropicPhrases)}`;
       break;
     case "Waxing Gibbous":
+      emoji = '🌔';
+      hashtag = '#WaxingGibbous';
       baseMessage = `Waxing Gibbous almost full, glowing at ${illuminationFixed}%! ${getRandomElement(lycanthropicPhrases)}`;
       break;
     case "Full Moon":
+      emoji = '🌕';
+      hashtag = '#FullMoon';
       baseMessage = `By Jove, a magnificent Full Moon! ${illuminationFixed}% light. ${getRandomElement(lycanthropicPhrases)}`;
       break;
     case "Waning Gibbous":
+      emoji = '🌖';
+      hashtag = '#WaningGibbous';
       baseMessage = `Waning Gibbous gracefully fading, ${illuminationFixed}% illuminated. ${getRandomElement(lycanthropicPhrases)}`;
       break;
     case "Last Quarter":
+      emoji = '🌗';
+      hashtag = '#LastQuarter';
       baseMessage = `Last Quarter moon, ${illuminationFixed}% visible! ${getRandomElement(lycanthropicPhrases)}`;
       break;
     case "Waning Crescent":
+      emoji = '🌘';
+      hashtag = '#WaningCrescent';
       baseMessage = `Waning Crescent, tiny sliver, ${illuminationFixed}% lit. ${getRandomElement(lycanthropicPhrases)}`;
       break;
   }
+
+  // Prepend emoji to the base message
+  baseMessage = `${emoji} ${baseMessage}`;
 
   // Ensure baseMessage ends with a space for proper concatenation
   baseMessage += ' ';
@@ -75,6 +96,9 @@ export function getPlayfulMoonMessage(
   }
 
   let finalMessage = `${baseMessage}${additionalMessageParts.join(' ')}`;
+
+  // Append hashtag to the end of the message
+  finalMessage = `${finalMessage} ${hashtag}`;
 
   // Ensure message is within 300 characters
   if (finalMessage.length > 300) {

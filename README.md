@@ -58,7 +58,7 @@ npm run dev:start
 
 ### Debug Mode
 
-To enable debug mode, set `DEBUG_MODE` to `"true"` in your `config.env` file. In debug mode, the bot will not post to Bluesky but will instead log generated moon messages to the console every few seconds, cycling through all moon phases and months. This is useful for testing message generation and length without making actual posts.
+When `DEBUG_MODE` is set to `true` in `config.env`, the bot will not post to Bluesky. Instead, it will log all possible combinations of moon phase messages to the console at once, demonstrating the message generation for various moon phases and months. This is useful for testing message generation and length without making actual posts.
 
 ## Contributing
 

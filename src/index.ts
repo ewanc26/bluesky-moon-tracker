@@ -1,7 +1,7 @@
 import * as process from "process";
 import { postMoonPhaseToBluesky } from "./services/blueskyService";
-import { getDelayUntilNextMidnightUTC } from "./utils/timeUtils";
-import { getPlayfulMoonMessage } from "./utils/moonPhaseUtils";
+import { getDelayUntilNextMidnightUTC } from "./core/timeUtils";
+import { getPlayfulMoonMessage } from "./core/moonPhaseUtils";
 import * as dotenv from "dotenv";
 
 // Load environment variables from the config.env file

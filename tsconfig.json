@@ -1,6 +1,8 @@
 {
     "compilerOptions": {
-      "module": "commonjs"  // Or "amd" if applicable
+      "module": "commonjs",  // Or "amd" if applicable
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true
     }
   }
   

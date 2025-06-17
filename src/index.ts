@@ -23,8 +23,19 @@ async function debugLoop() {
     const monthIndex = months.indexOf(month);
     for (const phase of phases) {
       const illumination = Math.random() * 100; // Random illumination for debug
-      const message = getPlayfulMoonMessage(phase, illumination, monthIndex);
-      console.log(`[DEBUG] Moon Message (Phase: ${phase}, Month: ${month}, Length: ${message.length}):\n${message}\n`);
+      const { message, hashtag } = getPlayfulMoonMessage(phase, illumination, monthIndex);
+      const mockPost = {
+        text: message,
+        facets: [{
+          features: [{
+            $type: "app.bsky.richtext.facet#tag",
+            tag: hashtag
+          }]
+        }]
+      };
+      console.log(`[DEBUG] Mock Bluesky Post (Phase: ${phase}, Month: ${month}):`);
+      console.log(JSON.stringify(mockPost, null, 2));
+      console.log();
     }
   }
 }

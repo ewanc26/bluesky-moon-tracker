@@ -1,7 +1,7 @@
 import { BskyAgent } from "@atproto/api";
 import * as process from "process";
 import { getMoonPhase } from "./moonPhaseService";
-import { getPlayfulMoonMessage } from "../core/moonPhaseUtils";
+import { getPlayfulMoonMessage } from "../core/moonPhaseMessages";
 
 export async function postMoonPhaseToBluesky() {
   console.log("Attempting to post moon phase to Bluesky.");

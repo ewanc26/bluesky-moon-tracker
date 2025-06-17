@@ -11,7 +11,7 @@ export function getPlayfulMoonMessage(
   phase: string,
   illumination: number,
   monthIndex: number
-): string {
+): { message: string; hashtag: string } {
   const illuminationFixed = illumination.toFixed(1);
   const currentMonth = monthNames[monthIndex];
 
@@ -105,5 +105,5 @@ export function getPlayfulMoonMessage(
     finalMessage = finalMessage.substring(0, 297) + "...";
   }
 
-   return finalMessage;
+   return { message: finalMessage, hashtag: hashtag };
 }

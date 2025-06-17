@@ -1,7 +1,7 @@
-import { BskyAgent } from "@atproto/api";
 import * as process from "process";
 import { getMoonPhase } from "./moonPhaseService";
 import { getPlayfulMoonMessage } from "../core/moonPhaseMessages";
+import { BskyAgent, RichText } from "@atproto/api";
 
 export async function postMoonPhaseToBluesky() {
   console.log("Attempting to post moon phase to Bluesky.");
@@ -29,15 +29,21 @@ export async function postMoonPhaseToBluesky() {
     const moonPhaseData = await getMoonPhase();
 
     if (moonPhaseData) {
-      const postText = getPlayfulMoonMessage(
+      const { message: postText, hashtag } = getPlayfulMoonMessage(
         moonPhaseData.Phase,
         moonPhaseData.Illumination * 100,
         new Date().getMonth()
       );
 
+      const rt = new RichText({
+        text: postText,
+      });
+      await rt.detectFacets(agent); // Re-enable automatic facet detection
+
       // Post the moon phase information to Bluesky
       await agent.post({
-        text: postText,
+        text: rt.text,
+        facets: rt.facets,
         langs: ["en"],
         createdAt: new Date().toISOString(),
       });

@@ -25,7 +25,9 @@ export function getPlayfulMoonMessage(
     "Howl at the moon!",
     "Night is young, moon is bright.",
     "Beware the moon, lads.", // hehehe, aawil reference lol
-    "Proper lunar spectacle."
+    "Proper lunar spectacle.",
+    "Moon's got a hold on me.",
+    "Lunar madness is upon us."
   ];
 
   const britishReferences = [
@@ -35,14 +37,18 @@ export function getPlayfulMoonMessage(
     "Keep calm and howl on.",
     "Cheerio, moon!",
     "Spot of bother? Blame the moon.",
-    "British as full moon over Stonehenge."
+    "British as full moon over Stonehenge.",
+    "Cracking view, innit?",
+    "Bit of moonlight, eh?"
   ];
 
   const prideReferences = [
     "Love wins, even under the moon!",
     "Shine bright, shine proud!",
     "Moonbeams & rainbows for all!",
-    "Celebrate love in every phase!"
+    "Celebrate love in every phase!",
+    "Proud under the lunar glow!",
+    "Queer joy, moonlit sky!"
   ];
 
   const getRandomElement = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];

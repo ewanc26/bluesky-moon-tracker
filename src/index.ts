@@ -42,9 +42,15 @@ async function debugLoop() {
 
 async function runLoop() {
   if (DEBUG_MODE) {
-    console.log("Starting in DEBUG MODE. Messages will be logged to console.");
-    debugLoop();
-    return; // Exit runLoop as debugLoop handles logging
+    console.log("Starting in DEBUG MODE.");
+    if (process.env.BLUESKY_USERNAME && process.env.BLUESKY_PASSWORD) {
+      console.log("Bluesky credentials found. Attempting to post immediately...");
+      await postMoonPhaseToBluesky();
+    } else {
+      console.log("No Bluesky credentials found. Messages will be logged to console.");
+      debugLoop();
+    }
+    return; // Exit runLoop as debugLoop or immediate post handles logging
   }
 
   while (true) {

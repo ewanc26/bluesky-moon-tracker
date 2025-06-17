@@ -1,0 +1,24 @@
+# Compiled JavaScript files
+node_modules/
+dist/
+build/
+
+# TypeCheck results
+*.tsbuildinfo
+
+# VS Code files
+.vscode/
+
+# Editor temporary/backup files
+*.swp
+*.swo
+
+# Environment files
+.env*
+*.env
+
+# Testing coverage reports
+coverage/
+
+package-lock.json
+.DS_Store

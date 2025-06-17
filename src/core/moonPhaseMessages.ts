@@ -50,23 +50,31 @@ export function getPlayfulMoonMessage(
   // Ensure baseMessage ends with a space for proper concatenation
   baseMessage += ' ';
 
-  // Add month-specific flair
-  let monthFlairText = "";
-  if (monthFlairs[currentMonth]) {
-    monthFlairText = getRandomElement(monthFlairs[currentMonth]);
+  let additionalMessageParts: string[] = [];
+
+  // Add month-specific flair with a 50% chance
+  if (Math.random() < 0.5 && monthFlairs[currentMonth]) { // 50% chance to add month flair
+    additionalMessageParts.push(getRandomElement(monthFlairs[currentMonth]));
   }
 
-  // Add a British reference to the month flair
-  if (monthFlairText) { // Only add if there's a base month flair
-    monthFlairText += ` ${getRandomElement(britishReferences)}`;
+  // Add a British reference with a 50% chance
+  if (Math.random() < 0.5) { // 50% chance to add British reference
+    additionalMessageParts.push(getRandomElement(britishReferences));
   }
 
-  // Add a Pride reference for June
+  // Add a Pride reference for June with a 70% chance
   if (currentMonth === "June" && Math.random() < 0.7) { // 70% chance to add a Pride reference in June
-    monthFlairText += ` ${getRandomElement(prideReferences)}`;
+    additionalMessageParts.push(getRandomElement(prideReferences));
   }
 
-  let finalMessage = `${baseMessage}${monthFlairText}`;
+  // Join additional parts with a space, if any exist
+  // Randomise the order of additional message parts
+  for (let i = additionalMessageParts.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [additionalMessageParts[i], additionalMessageParts[j]] = [additionalMessageParts[j], additionalMessageParts[i]];
+  }
+
+  let finalMessage = `${baseMessage}${additionalMessageParts.join(' ')}`;
 
   // Ensure message is within 300 characters
   if (finalMessage.length > 300) {

@@ -23,10 +23,10 @@ Bluesky Moon Tracker is a simple script designed to periodically post the curren
    cd bluesky-awoo-bot
    ```
 
-2. **Install Dependencies:**
+2. **Initialize and Install Dependencies:**
 
    ```sh
-   npm install
+   npm run dev:init
    ```
 
 ## Configuration
@@ -39,6 +39,7 @@ Bluesky Moon Tracker is a simple script designed to periodically post the curren
    BLUESKY_USERNAME="your_bluesky_username"
    BLUESKY_PASSWORD="your_bluesky_password"
    BLUESKY_PDS_URL="https://bsky.social" # Optional: Your PDS URL if not using bsky.social
+   DEBUG_MODE="false" # Set to "true" to enable debug logging of moon messages
    ```
 
 2. **Fill in Your Bluesky Credentials:**
@@ -47,13 +48,17 @@ Bluesky Moon Tracker is a simple script designed to periodically post the curren
 
 ## Usage
 
-1. **Run the Bot:**
+To run the bot, use the following command:
 
-   ```sh
-   npx ts-node src/index.ts
-   ```
+```bash
+npm run dev:start
+```
 
    This command will start the bot, which will post the current moon phase daily at 00:00 UTC. If the current time is past 00:00 UTC, it will post immediately and then schedule the next post for 00:00 UTC the following day.
+
+### Debug Mode
+
+To enable debug mode, set `DEBUG_MODE` to `"true"` in your `config.env` file. In debug mode, the bot will not post to Bluesky but will instead log generated moon messages to the console every few seconds, cycling through all moon phases and months. This is useful for testing message generation and length without making actual posts.
 
 ## Contributing
 

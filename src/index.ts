@@ -1,12 +1,41 @@
-import * as dotenv from "dotenv";
 import * as process from "process";
 import { postMoonPhaseToBluesky } from "./services/blueskyService";
 import { getDelayUntilNextMidnightUTC } from "./utils/timeUtils";
+import { getPlayfulMoonMessage } from "./utils/moonPhaseUtils";
+import * as dotenv from "dotenv";
 
 // Load environment variables from the config.env file
 dotenv.config({ path: "./src/config.env" });
 
+const DEBUG_MODE = process.env.DEBUG_MODE === "true";
+
+async function debugLoop() {
+  const phases = [
+    "New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous",
+    "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"
+  ];
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  for (const month of months) {
+    const monthIndex = months.indexOf(month);
+    for (const phase of phases) {
+      const illumination = Math.random() * 100; // Random illumination for debug
+      const message = getPlayfulMoonMessage(phase, illumination, monthIndex);
+      console.log(`[DEBUG] Moon Message (Phase: ${phase}, Month: ${month}, Length: ${message.length}):\n${message}\n`);
+    }
+  }
+}
+
 async function runLoop() {
+  if (DEBUG_MODE) {
+    console.log("Starting in DEBUG MODE. Messages will be logged to console.");
+    debugLoop();
+    return; // Exit runLoop as debugLoop handles logging
+  }
+
   while (true) {
     const now = new Date();
     const currentUTCHours = now.getUTCHours();

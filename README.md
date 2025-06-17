@@ -70,7 +70,13 @@ bluesky-awoo-bot/
 │
 ├── src/
 │   ├── config.env                # Environment configuration file
-│   └── index.ts                  # Main script for the bot
+│   ├── index.ts                  # Main script for the bot, orchestrates the bot's operations
+│   ├── services/
+│   │   ├── blueskyService.ts     # Handles Bluesky login and posting
+│   │   └── moonPhaseService.ts   # Fetches moon phase data from the API
+│   └── utils/
+│       ├── moonPhaseUtils.ts     # Generates playful moon messages
+│       └── timeUtils.ts          # Utility functions for time calculations
 │
 ├── package.json                  # Node.js project metadata and dependencies
 └── README.md                     # This README file
@@ -84,4 +90,20 @@ This file stores the Bluesky credentials required to log in and post. Please mak
 
 ### `src/index.ts`
 
-This is the main script that handles the bot's functionality. It logs into Bluesky, fetches the current moon phase from the Farmsense API, and posts it daily at 00:00 UTC.
+This is the main script that orchestrates the bot's functionality, including loading environment variables and scheduling daily posts.
+
+### `src/services/blueskyService.ts`
+
+This file handles the authentication with Bluesky and the actual posting of messages.
+
+### `src/services/moonPhaseService.ts`
+
+This file is responsible for fetching the current moon phase data from the Farmsense API.
+
+### `src/utils/moonPhaseUtils.ts`
+
+This file contains the logic for generating the playful moon phase messages, including the various phrases and conditional flair.
+
+### `src/utils/timeUtils.ts`
+
+This file provides utility functions related to time calculations, specifically for scheduling the daily posts.

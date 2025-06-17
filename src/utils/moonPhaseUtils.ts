@@ -99,47 +99,88 @@ export function getPlayfulMoonMessage(
 
   // Add month-specific flair with British references
   let monthFlair = "";
-  switch (currentMonth) {
-    case "January":
-      monthFlair = ` Frosty start to lunar year! ${getRandomElement(britishReferences)}`;
-      break;
-    case "February":
-      monthFlair = ` Love in the air, so is the moon! ${getRandomElement(britishReferences)}`;
-      break;
-    case "March":
-      monthFlair = ` Spring is here, moon is blooming! ${getRandomElement(britishReferences)}`;
-      break;
-    case "April":
-      monthFlair = ` April showers bring lunar powers! ${getRandomElement(britishReferences)}`;
-      break;
-    case "May":
-      monthFlair = ` May the moon be with you! ${getRandomElement(britishReferences)}`;
-      break;
-    case "June":
-      monthFlair = ` Summer nights & moonlit delights! ${getRandomElement(britishReferences)}`;
-      // Add a Pride reference for June
-      if (Math.random() < 0.7) { // 70% chance to add a Pride reference in June
-        monthFlair += ` ${getRandomElement(prideReferences)}`;
-      }
-      break;
-    case "July":
-      monthFlair = ` Hot summer, cool moon! ${getRandomElement(britishReferences)}`;
-      break;
-    case "August":
-      monthFlair = ` Starry August night, moon our guide! ${getRandomElement(britishReferences)}`;
-      break;
-    case "September":
-      monthFlair = ` Autumn leaves & moonlit dreams! ${getRandomElement(britishReferences)}`;
-      break;
-    case "October":
-      monthFlair = ` Spooky season moon vibes! ${getRandomElement(britishReferences)}`;
-      break;
-    case "November":
-      monthFlair = ` Giving thanks for this beautiful moon! ${getRandomElement(britishReferences)}`;
-      break;
-    case "December":
-      monthFlair = ` Winter wonderland, moon shining bright! ${getRandomElement(britishReferences)}`;
-      break;
+  const monthFlairs: { [key: string]: string[] } = {
+    "January": [
+      `Frosty start to lunar year! ${getRandomElement(britishReferences)}`,
+      `New year, new moon, same great British charm! ${getRandomElement(britishReferences)}`,
+      `Chilly nights, bright moon. ${getRandomElement(britishReferences)}`,
+      `The Wolf Moon howls! ${getRandomElement(britishReferences)}`
+    ],
+    "February": [
+      `Love in the air, so is the moon! ${getRandomElement(britishReferences)}`,
+      `A romantic moon for the shortest month. ${getRandomElement(britishReferences)}`,
+      `Cupid's arrow, guided by moonlight. ${getRandomElement(britishReferences)}`,
+      `The Snow Moon blankets the sky! ${getRandomElement(britishReferences)}`
+    ],
+    "March": [
+      `Spring is here, moon is blooming! ${getRandomElement(britishReferences)}`,
+      `As March roars in, the moon glows on. ${getRandomElement(britishReferences)}`,
+      `New beginnings under the vernal moon. ${getRandomElement(britishReferences)}`,
+      `The Worm Moon signals new life! ${getRandomElement(britishReferences)}`
+    ],
+    "April": [
+      `April showers bring lunar powers! ${getRandomElement(britishReferences)}`,
+      `Don't let the rain obscure this lovely moon! ${getRandomElement(britishReferences)}`,
+      `Spring has truly sprung, and so has the moon! ${getRandomElement(britishReferences)}`,
+      `The Pink Moon is a sight to behold! ${getRandomElement(britishReferences)}`
+    ],
+    "May": [
+      `May the moon be with you! ${getRandomElement(britishReferences)}`,
+      `A blooming good moon for May! ${getRandomElement(britishReferences)}`,
+      `Longer days, beautiful moonlit nights. ${getRandomElement(britishReferences)}`,
+      `The Flower Moon is in full bloom! ${getRandomElement(britishReferences)}`
+    ],
+    "June": [
+      `Summer nights & moonlit delights! ${getRandomElement(britishReferences)}`,
+      `June's moon, perfect for long evenings. ${getRandomElement(britishReferences)}`,
+      `The summer solstice moon is here! ${getRandomElement(britishReferences)}`,
+      `The Strawberry Moon ripens! ${getRandomElement(britishReferences)}`
+    ],
+    "July": [
+      `Hot summer, cool moon! ${getRandomElement(britishReferences)}`,
+      `July's moon, a real scorcher! ${getRandomElement(britishReferences)}`,
+      `Midsummer moon, shining bright. ${getRandomElement(britishReferences)}`,
+      `The Buck Moon is majestic! ${getRandomElement(britishReferences)}`
+    ],
+    "August": [
+      `Starry August night, moon our guide! ${getRandomElement(britishReferences)}`,
+      `August's moon, a late summer treat. ${getRandomElement(britishReferences)}`,
+      `Harvest moon on the horizon! ${getRandomElement(britishReferences)}`,
+      `The Sturgeon Moon swims into view! ${getRandomElement(britishReferences)}`
+    ],
+    "September": [
+      `Autumn leaves & moonlit dreams! ${getRandomElement(britishReferences)}`,
+      `September's moon, a touch of autumn. ${getRandomElement(britishReferences)}`,
+      `Crisp air, clear moon. ${getRandomElement(britishReferences)}`,
+      `The Harvest Moon brings abundance! ${getRandomElement(britishReferences)}`
+    ],
+    "October": [
+      `Spooky season moon vibes! ${getRandomElement(britishReferences)}`,
+      `October's moon, perfect for ghostly tales. ${getRandomElement(britishReferences)}`,
+      `A hauntingly beautiful moon! ${getRandomElement(britishReferences)}`,
+      `The Hunter's Moon guides the way! ${getRandomElement(britishReferences)}`
+    ],
+    "November": [
+      `Giving thanks for this beautiful moon! ${getRandomElement(britishReferences)}`,
+      `November's moon, a prelude to winter. ${getRandomElement(britishReferences)}`,
+      `Chilly nights, warm moonlit thoughts. ${getRandomElement(britishReferences)}`,
+      `The Beaver Moon builds its presence! ${getRandomElement(britishReferences)}`
+    ],
+    "December": [
+      `Winter wonderland, moon shining bright! ${getRandomElement(britishReferences)}`,
+      `December's moon, festive and bright. ${getRandomElement(britishReferences)}`,
+      `A truly magical moon for the holidays! ${getRandomElement(britishReferences)}`,
+      `The Cold Moon brings winter's embrace! ${getRandomElement(britishReferences)}`
+    ]
+  };
+
+  if (monthFlairs[currentMonth]) {
+    monthFlair = getRandomElement(monthFlairs[currentMonth]);
+  }
+
+  // Add a Pride reference for June
+  if (currentMonth === "June" && Math.random() < 0.7) { // 70% chance to add a Pride reference in June
+    monthFlair += ` ${getRandomElement(prideReferences)}`;
   }
 
   let finalMessage = `${baseMessage}${monthFlair}`;

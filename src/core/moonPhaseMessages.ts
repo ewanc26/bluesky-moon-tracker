@@ -47,18 +47,26 @@ export function getPlayfulMoonMessage(
       break;
   }
 
-  // Add month-specific flair with British references
-  let monthFlair = "";
+  // Ensure baseMessage ends with a space for proper concatenation
+  baseMessage += ' ';
+
+  // Add month-specific flair
+  let monthFlairText = "";
   if (monthFlairs[currentMonth]) {
-    monthFlair = getRandomElement(monthFlairs[currentMonth]);
+    monthFlairText = getRandomElement(monthFlairs[currentMonth]);
+  }
+
+  // Add a British reference to the month flair
+  if (monthFlairText) { // Only add if there's a base month flair
+    monthFlairText += ` ${getRandomElement(britishReferences)}`;
   }
 
   // Add a Pride reference for June
   if (currentMonth === "June" && Math.random() < 0.7) { // 70% chance to add a Pride reference in June
-    monthFlair += ` ${getRandomElement(prideReferences)}`;
+    monthFlairText += ` ${getRandomElement(prideReferences)}`;
   }
 
-  let finalMessage = `${baseMessage}${monthFlair}`;
+  let finalMessage = `${baseMessage}${monthFlairText}`;
 
   // Ensure message is within 300 characters
   if (finalMessage.length > 300) {

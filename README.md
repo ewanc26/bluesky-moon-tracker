@@ -35,7 +35,7 @@ Bluesky Moon Tracker is a simple script designed to periodically post the curren
 
    Create a file named `config.env` in the `src` directory with the following contents:
 
-   ```sh
+   ```ini
    BLUESKY_USERNAME="your_bluesky_username"
    BLUESKY_PASSWORD="your_bluesky_password"
    BLUESKY_PDS_URL="https://bsky.social" # Optional: Your PDS URL if not using bsky.social

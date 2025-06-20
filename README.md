@@ -19,8 +19,8 @@ Bluesky Moon Tracker is a simple script designed to periodically post the curren
 1. **Clone the Repository:**
 
    ```sh
-   git clone https://github.com/ewanc26/bluesky-awoo-bot.git
-   cd bluesky-awoo-bot
+   git clone https://github.com/ewanc26/bluesky-moon-tracker.git
+   cd bluesky-moon-tracker
    ```
 
 2. **Initialize and Install Dependencies:**
@@ -54,7 +54,7 @@ To run the bot, use the following command:
 npm run dev:start
 ```
 
-   This command will start the bot, which will post the current moon phase daily at 00:00 UTC. If the current time is past 00:00 UTC, it will post immediately and then schedule the next post for 00:00 UTC the following day.
+This command will start the bot, which will post the current moon phase daily at 00:00 UTC. If the current time is past 00:00 UTC, it will post immediately and then schedule the next post for 00:00 UTC the following day.
 
 ### Debug Mode
 
@@ -76,7 +76,7 @@ This project is licensed under the MIT License. Please take a look at the [LICEN
 ## Project Structure
 
 ```plaintext
-bluesky-awoo-bot/
+bluesky-moon-tracker/
 │
 ├── src/
 │   ├── config.env                # Environment configuration file
@@ -84,9 +84,10 @@ bluesky-awoo-bot/
 │   ├── services/
 │   │   ├── blueskyService.ts     # Handles Bluesky login and posting
 │   │   └── moonPhaseService.ts   # Fetches moon phase data from the API
-│   └── utils/
-│       ├── moonPhaseUtils.ts     # Generates playful moon messages
-│       └── timeUtils.ts          # Utility functions for time calculations
+│   ├── core/
+│   │   ├── moonPhaseConstants.ts
+│   │   ├── moonPhaseMessages.ts     # Generates playful moon messages
+│   │   └── timeUtils.ts          # Utility functions for time calculations
 │
 ├── package.json                  # Node.js project metadata and dependencies
 └── README.md                     # This README file
@@ -110,10 +111,14 @@ This file handles the authentication with Bluesky and the actual posting of mess
 
 This file is responsible for fetching the current moon phase data from the Farmsense API.
 
-### `src/utils/moonPhaseUtils.ts`
+### `src/core/moonPhaseConstants.ts`
+
+This file contains constants related to moon phases, such as emojis and hashtags.
+
+### `src/core/moonPhaseMessages.ts`
 
 This file contains the logic for generating the playful moon phase messages, including the various phrases and conditional flair.
 
-### `src/utils/timeUtils.ts`
+### `src/core/timeUtils.ts`
 
 This file provides utility functions related to time calculations, specifically for scheduling the daily posts.

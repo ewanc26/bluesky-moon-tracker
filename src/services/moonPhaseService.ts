@@ -1,30 +1,81 @@
 import axios from "axios";
+import type { MoonPhaseData } from '../types/moonPhase';
 
-/**
- * Fetches the current moon phase data from the farmsense.net API.
- * @returns A Promise that resolves to the moon phase data object, or null if an error occurs.
- */
-export async function getMoonPhase(): Promise<any | null> {
-  try {
-    // Get the current Unix timestamp for 00:00 UTC
+export class MoonPhaseService {
+  private readonly apiUrl = "https://api.farmsense.net/v1/moonphases/";
+  private readonly timeoutMs = 10000; // 10 seconds
+
+  private getApiUrl(timestamp: number): string {
+    return `${this.apiUrl}?d=${timestamp}`;
+  }
+
+  private getCurrentMidnightTimestamp(): number {
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
-    const unixTimestamp = Math.floor(now.getTime() / 1000);
+    return Math.floor(now.getTime() / 1000);
+  }
 
-    const apiUrl = `https://api.farmsense.net/v1/moonphases/?d=${unixTimestamp}`;
-    const response = await axios.get(apiUrl);
+  private validateMoonPhaseData(data: any): data is MoonPhaseData {
+    return (
+      data &&
+      typeof data.Phase === 'string' &&
+      typeof data.Illumination === 'number' &&
+      data.Phase.length > 0 &&
+      data.Illumination >= 0 &&
+      data.Illumination <= 1
+    );
+  }
 
-    // Explicitly type response.data as an array of any
-    const moonData: any[] = Array.isArray(response.data) ? response.data : [];
+  public async getMoonPhase(): Promise<MoonPhaseData | null> {
+    try {
+      const timestamp = this.getCurrentMidnightTimestamp();
+      const url = this.getApiUrl(timestamp);
+      
+      console.log(`Fetching moon phase data from: ${url}`);
+      
+      const response = await axios.get(url, {
+        timeout: this.timeoutMs,
+        headers: {
+          'User-Agent': 'Moon Phase Bot/1.0'
+        }
+      });
 
-    if (moonData && moonData.length > 0) {
-      return response.data[0];
-    } else {
-      console.error("No moon phase data received.");
+      if (!Array.isArray(response.data)) {
+        console.error("API response is not an array:", response.data);
+        return null;
+      }
+
+      if (response.data.length === 0) {
+        console.error("API returned empty array");
+        return null;
+      }
+
+      const moonData = response.data[0];
+      
+      if (!this.validateMoonPhaseData(moonData)) {
+        console.error("Invalid moon phase data structure:", moonData);
+        return null;
+      }
+
+      console.log(`Successfully fetched moon phase: ${moonData.Phase} (${(moonData.Illumination * 100).toFixed(1)}%)`);
+      return moonData;
+
+    } catch (error) {
+      if (error) {
+        console.error(`API request failed: ${error.message}`);
+        if (error.response) {
+          console.error(`Response status: ${error.response.status}`);
+          console.error(`Response data:`, error.response.data);
+        }
+      } else {
+        console.error("Unexpected error fetching moon phase data:", error);
+      }
       return null;
     }
-  } catch (error) {
-    console.error("Error fetching moon phase data:", error);
-    return null;
   }
+}
+
+export async function getMoonPhase(): Promise<MoonPhaseData | null> {
+  const service = new MoonPhaseService();
+  return service.getMoonPhase();
 }

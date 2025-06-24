@@ -1,131 +1,153 @@
-import * as process from "process";
+import { BskyAgent, RichText, AppBskyRichtextFacet } from "@atproto/api";
 import { getMoonPhase } from "./moonPhaseService";
 import { getPlayfulMoonMessage } from "../core/moonPhaseMessages";
-import { BskyAgent, RichText, AppBskyRichtextFacet } from "@atproto/api";
+import type { BlueskyPost } from '../types/moonPhase';
 
-/**
- * Manually creates a hashtag facet for the given text and hashtag
- */
-function createHashtagFacet(text: string, hashtag: string): AppBskyRichtextFacet.Main | null {
-  const hashtagWithHash = hashtag.startsWith('#') ? hashtag : `#${hashtag}`;
-  const hashtagIndex = text.lastIndexOf(hashtagWithHash);
-  
-  if (hashtagIndex === -1) {
-    return null;
+export class BlueskyService {
+  private agent: BskyAgent;
+  private readonly pdsUrl: string;
+
+  constructor(pdsUrl: string = "https://bsky.social") {
+    this.pdsUrl = pdsUrl;
+    this.agent = new BskyAgent({ service: this.pdsUrl });
   }
 
-  // Use TextEncoder to get proper UTF-8 byte offsets
-  const encoder = new TextEncoder();
-  const beforeHashtag = text.substring(0, hashtagIndex);
-  const hashtagText = hashtagWithHash;
-  
-  const byteStart = encoder.encode(beforeHashtag).length;
-  const byteEnd = byteStart + encoder.encode(hashtagText).length;
+  private validateCredentials(): { username: string; password: string } {
+    const username = process.env.BLUESKY_USERNAME;
+    const password = process.env.BLUESKY_PASSWORD;
 
-  return {
-    index: {
-      byteStart,
-      byteEnd,
-    },
-    features: [{
-      $type: 'app.bsky.richtext.facet#tag',
-      tag: hashtag.replace(/^#/, ''), // Remove # from the tag value
-    }],
-  };
-}
+    if (!username || !password) {
+      throw new Error("Missing required environment variables: BLUESKY_USERNAME and BLUESKY_PASSWORD");
+    }
 
-export async function postMoonPhaseToBluesky() {
-  console.log("Attempting to post moon phase to Bluesky.");
-
-  // Check for empty environment variables and abort if needed
-  if (!process.env.BLUESKY_USERNAME || !process.env.BLUESKY_PASSWORD) {
-    console.error(
-      "Missing required environment variables: BLUESKY_USERNAME and BLUESKY_PASSWORD.\nAborting script."
-    );
-    process.exit(1);
+    return { username, password };
   }
 
-  const pdsUrl = process.env.BLUESKY_PDS_URL || "https://bsky.social";
-  const agent = new BskyAgent({ service: pdsUrl });
+  private createHashtagFacet(text: string, hashtag: string): AppBskyRichtextFacet.Main | null {
+    const hashtagWithHash = hashtag.startsWith('#') ? hashtag : `#${hashtag}`;
+    const hashtagIndex = text.lastIndexOf(hashtagWithHash);
+    
+    if (hashtagIndex === -1) {
+      console.warn(`Hashtag ${hashtagWithHash} not found in text`);
+      return null;
+    }
 
-  try {
-    // Login to Bluesky
-    await agent.login({
-      identifier: process.env.BLUESKY_USERNAME!,
-      password: process.env.BLUESKY_PASSWORD!,
-    });
-    console.log("Logged in to Bluesky.");
+    const encoder = new TextEncoder();
+    const beforeHashtag = text.substring(0, hashtagIndex);
+    const hashtagText = hashtagWithHash;
+    
+    const byteStart = encoder.encode(beforeHashtag).length;
+    const byteEnd = byteStart + encoder.encode(hashtagText).length;
 
-    // Get moon phase data
-    const moonPhaseData = await getMoonPhase();
+    return {
+      index: { byteStart, byteEnd },
+      features: [{
+        $type: 'app.bsky.richtext.facet#tag',
+        tag: hashtag.replace(/^#/, ''),
+      }],
+    };
+  }
 
-    if (moonPhaseData) {
+  private async processRichText(postText: string, hashtag: string): Promise<RichText> {
+    const rt = new RichText({ text: postText });
+    
+    // Detect facets automatically
+    await rt.detectFacets(this.agent);
+
+    // Manually ensure hashtag facet is correct
+    const hashtagFacet = this.createHashtagFacet(postText, hashtag);
+    
+    if (hashtagFacet) {
+      const existingHashtagFacet = rt.facets?.find(facet => 
+        facet.features.some(feature => 
+          feature.$type === 'app.bsky.richtext.facet#tag' && 
+          feature.tag === hashtag.replace(/^#/, '')
+        )
+      );
+
+      if (!existingHashtagFacet) {
+        rt.facets = [...(rt.facets || []), hashtagFacet];
+        console.log("Manually added hashtag facet");
+      } else {
+        console.log("Hashtag facet already detected automatically");
+      }
+    }
+
+    // Sort facets by byteStart
+    if (rt.facets && rt.facets.length > 1) {
+      rt.facets.sort((a, b) => a.index.byteStart - b.index.byteStart);
+    }
+
+    return rt;
+  }
+
+  private createPostRecord(rt: RichText): BlueskyPost {
+    return {
+      text: rt.text,
+      facets: rt.facets,
+      langs: ["en"],
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  private logDebugInfo(postText: string, rt: RichText): void {
+    if (process.env.DEBUG_MODE === "true") {
+      console.log("Final facets sent with post:");
+      console.log(JSON.stringify(rt.facets, null, 2));
+      
+      const encoder = new TextEncoder();
+      const utf8Bytes = encoder.encode(postText);
+      console.log(`Post text UTF-8 length: ${utf8Bytes.length} bytes`);
+      console.log(`Post text character length: ${postText.length} characters`);
+    }
+  }
+
+  public async login(): Promise<void> {
+    const { username, password } = this.validateCredentials();
+    
+    try {
+      await this.agent.login({ identifier: username, password });
+      console.log("Successfully logged in to Bluesky");
+    } catch (error) {
+      console.error("Failed to login to Bluesky:", error);
+      throw new Error("Bluesky authentication failed");
+    }
+  }
+
+  public async postMoonPhase(): Promise<void> {
+    console.log("Attempting to post moon phase to Bluesky");
+
+    try {
+      await this.login();
+
+      const moonPhaseData = await getMoonPhase();
+      if (!moonPhaseData) {
+        throw new Error("Could not retrieve moon phase data");
+      }
+
       const { message: postText, hashtag } = getPlayfulMoonMessage(
         moonPhaseData.Phase,
         moonPhaseData.Illumination * 100,
         new Date().getMonth()
       );
 
-      // Create RichText object
-      const rt = new RichText({
-        text: postText,
-      });
+      const rt = await this.processRichText(postText, hashtag);
+      const postRecord = this.createPostRecord(rt);
+
+      await this.agent.post(postRecord);
+      console.log("Successfully posted:", postText);
       
-      // First, detect facets automatically (for links, mentions, etc.)
-      await rt.detectFacets(agent);
+      this.logDebugInfo(postText, rt);
 
-      // Then, manually ensure hashtag facet is correct
-      const hashtagFacet = createHashtagFacet(postText, hashtag);
-      
-      if (hashtagFacet) {
-        // Check if hashtag facet already exists from automatic detection
-        const existingHashtagFacet = rt.facets?.find(facet => 
-          facet.features.some(feature => 
-            feature.$type === 'app.bsky.richtext.facet#tag' && 
-            feature.tag === hashtag.replace(/^#/, '')
-          )
-        );
-
-        if (!existingHashtagFacet) {
-          // Add our manually created hashtag facet
-          rt.facets = [...(rt.facets || []), hashtagFacet];
-          console.log("Manually added hashtag facet.");
-        } else {
-          console.log("Hashtag facet already detected automatically.");
-        }
-      }
-
-      // Sort facets by byteStart to ensure proper ordering
-      if (rt.facets && rt.facets.length > 1) {
-        rt.facets.sort((a, b) => a.index.byteStart - b.index.byteStart);
-      }
-
-      // Post the moon phase information to Bluesky
-      const postRecord = {
-        text: rt.text,
-        facets: rt.facets,
-        langs: ["en"],
-        createdAt: new Date().toISOString(),
-      };
-
-      await agent.post(postRecord);
-      console.log("Just posted:", postText);
-      
-      // Debug: Log the facets that were sent
-      if (process.env.DEBUG_MODE === "true") {
-        console.log("Final facets sent with post:");
-        console.log(JSON.stringify(rt.facets, null, 2));
-        
-        // Verify UTF-8 encoding
-        const encoder = new TextEncoder();
-        const utf8Bytes = encoder.encode(postText);
-        console.log(`Post text UTF-8 length: ${utf8Bytes.length} bytes`);
-        console.log(`Post text character length: ${postText.length} characters`);
-      }
-    } else {
-      console.log("Could not retrieve moon phase data to post.");
+    } catch (error) {
+      console.error("Error during Bluesky posting process:", error);
+      throw error;
     }
-  } catch (error) {
-    console.error("Error during Bluesky posting process:", error);
   }
+}
+
+export async function postMoonPhaseToBluesky(): Promise<void> {
+  const pdsUrl = process.env.BLUESKY_PDS_URL || "https://bsky.social";
+  const service = new BlueskyService(pdsUrl);
+  await service.postMoonPhase();
 }

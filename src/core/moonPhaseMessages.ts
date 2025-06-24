@@ -1,109 +1,100 @@
-import { monthNames, lycanthropicPhrases, britishReferences, prideReferences, monthFlairs } from './moonPhaseConstants';
+import { 
+  MONTH_NAMES, 
+  LYCANTHROPIC_PHRASES, 
+  BRITISH_REFERENCES, 
+  PRIDE_REFERENCES, 
+  MONTH_FLAIRS,
+  PHASE_CONFIG,
+  MESSAGE_CONFIG
+} from './moonPhaseConstants';
+import { getRandomElement, shuffleArray } from '../utils/arrayUtils';
+import type { MoonMessage } from '../types/moonPhase';
 
-/**
- * Generates a playful message about the moon phase and illumination, considering the month.
- * @param phase The name of the moon phase (e.g., "New Moon", "Full Moon").
- * @param illumination The illumination percentage of the moon (0-100).
- * @param monthIndex The 0-indexed month (0 for January, 11 for December).
- * @returns A playful string describing the moon, limited to 300 characters.
- */
+export class MoonMessageGenerator {
+  private getBaseMessage(phase: string, illumination: number): string {
+    const illuminationFixed = illumination.toFixed(1);
+    const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
+    
+    if (!config) {
+      throw new Error(`Unknown moon phase: ${phase}`);
+    }
+
+    const messages = {
+      "New Moon": `It's a New Moon, barely a whisper! Illumination: ${illuminationFixed}%.`,
+      "Waxing Crescent": `Look up! Waxing Crescent, brighter at ${illuminationFixed}%.`,
+      "First Quarter": `Halfway to full! First Quarter moon ${illuminationFixed}% lit.`,
+      "Waxing Gibbous": `Waxing Gibbous almost full, glowing at ${illuminationFixed}%!`,
+      "Full Moon": `By Jove, a magnificent Full Moon! ${illuminationFixed}% light.`,
+      "Waning Gibbous": `Waning Gibbous gracefully fading, ${illuminationFixed}% illuminated.`,
+      "Last Quarter": `Last Quarter moon, ${illuminationFixed}% visible!`,
+      "Waning Crescent": `Waning Crescent, tiny sliver, ${illuminationFixed}% lit.`
+    };
+
+    const baseMessage = messages[phase as keyof typeof messages];
+    const lycanthropicPhrase = getRandomElement(LYCANTHROPIC_PHRASES);
+    
+    return `${config.emoji} ${baseMessage} ${lycanthropicPhrase}`;
+  }
+
+  private getAdditionalMessages(monthIndex: number): string[] {
+    const currentMonth = MONTH_NAMES[monthIndex];
+    const additionalMessages: string[] = [];
+
+    // Add month-specific flair
+    if (Math.random() < MESSAGE_CONFIG.MONTH_FLAIR_CHANCE && MONTH_FLAIRS[currentMonth]) {
+      additionalMessages.push(getRandomElement(MONTH_FLAIRS[currentMonth]));
+    }
+
+    // Add British reference
+    if (Math.random() < MESSAGE_CONFIG.BRITISH_REFERENCE_CHANCE) {
+      additionalMessages.push(getRandomElement(BRITISH_REFERENCES));
+    }
+
+    // Add Pride reference for June
+    if (currentMonth === "June" && Math.random() < MESSAGE_CONFIG.PRIDE_REFERENCE_CHANCE_JUNE) {
+      additionalMessages.push(getRandomElement(PRIDE_REFERENCES));
+    }
+
+    return shuffleArray(additionalMessages);
+  }
+
+  private truncateMessage(message: string): string {
+    if (message.length <= MESSAGE_CONFIG.MAX_LENGTH) {
+      return message;
+    }
+    
+    const truncateLength = MESSAGE_CONFIG.MAX_LENGTH - MESSAGE_CONFIG.TRUNCATE_SUFFIX.length;
+    return message.substring(0, truncateLength) + MESSAGE_CONFIG.TRUNCATE_SUFFIX;
+  }
+
+  public generateMessage(phase: string, illumination: number, monthIndex: number): MoonMessage {
+    if (monthIndex < 0 || monthIndex > 11) {
+      throw new Error(`Invalid month index: ${monthIndex}. Must be between 0 and 11.`);
+    }
+
+    const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
+    if (!config) {
+      throw new Error(`Unknown moon phase: ${phase}`);
+    }
+
+    const baseMessage = this.getBaseMessage(phase, illumination);
+    const additionalMessages = this.getAdditionalMessages(monthIndex);
+    
+    const fullMessage = [baseMessage, ...additionalMessages, config.hashtag].join(' ');
+    const truncatedMessage = this.truncateMessage(fullMessage);
+
+    return {
+      message: truncatedMessage,
+      hashtag: config.hashtag
+    };
+  }
+}
+
 export function getPlayfulMoonMessage(
-  phase: string,
-  illumination: number,
+  phase: string, 
+  illumination: number, 
   monthIndex: number
-): { message: string; hashtag: string } {
-  const illuminationFixed = illumination.toFixed(1);
-  const currentMonth = monthNames[monthIndex];
-
-  const getRandomElement = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-
-  let baseMessage = `The moon is a ${phase} today, shining at ${illuminationFixed}%!`;
-  let emoji = '';
-  let hashtag = '#MoonPhase';
-
-  // Determine emoji and specific hashtag based on phase
-  switch (phase) {
-    case "New Moon":
-      emoji = '🌑';
-      hashtag = '#NewMoon';
-      baseMessage = `It's a New Moon, barely a whisper! Illumination: ${illuminationFixed}%. ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-    case "Waxing Crescent":
-      emoji = '🌒';
-      hashtag = '#WaxingCrescent';
-      baseMessage = `Look up! Waxing Crescent, brighter at ${illuminationFixed}%. ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-    case "First Quarter":
-      emoji = '🌓';
-      hashtag = '#FirstQuarter';
-      baseMessage = `Halfway to full! First Quarter moon ${illuminationFixed}% lit. ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-    case "Waxing Gibbous":
-      emoji = '🌔';
-      hashtag = '#WaxingGibbous';
-      baseMessage = `Waxing Gibbous almost full, glowing at ${illuminationFixed}%! ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-    case "Full Moon":
-      emoji = '🌕';
-      hashtag = '#FullMoon';
-      baseMessage = `By Jove, a magnificent Full Moon! ${illuminationFixed}% light. ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-    case "Waning Gibbous":
-      emoji = '🌖';
-      hashtag = '#WaningGibbous';
-      baseMessage = `Waning Gibbous gracefully fading, ${illuminationFixed}% illuminated. ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-    case "Last Quarter":
-      emoji = '🌗';
-      hashtag = '#LastQuarter';
-      baseMessage = `Last Quarter moon, ${illuminationFixed}% visible! ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-    case "Waning Crescent":
-      emoji = '🌘';
-      hashtag = '#WaningCrescent';
-      baseMessage = `Waning Crescent, tiny sliver, ${illuminationFixed}% lit. ${getRandomElement(lycanthropicPhrases)}`;
-      break;
-  }
-
-  // Prepend emoji to the base message
-  baseMessage = `${emoji} ${baseMessage}`;
-
-  // Ensure baseMessage ends with a space for proper concatenation
-  baseMessage += ' ';
-
-  let additionalMessageParts: string[] = [];
-
-  // Add month-specific flair with a 50% chance
-  if (Math.random() < 0.5 && monthFlairs[currentMonth]) { // 50% chance to add month flair
-    additionalMessageParts.push(getRandomElement(monthFlairs[currentMonth]));
-  }
-
-  // Add a British reference with a 50% chance
-  if (Math.random() < 0.5) { // 50% chance to add British reference
-    additionalMessageParts.push(getRandomElement(britishReferences));
-  }
-
-  // Add a Pride reference for June with a 70% chance
-  if (currentMonth === "June" && Math.random() < 0.7) { // 70% chance to add a Pride reference in June
-    additionalMessageParts.push(getRandomElement(prideReferences));
-  }
-
-  // Join additional parts with a space, if any exist
-  // Randomise the order of additional message parts
-  for (let i = additionalMessageParts.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [additionalMessageParts[i], additionalMessageParts[j]] = [additionalMessageParts[j], additionalMessageParts[i]];
-  }
-
-  let finalMessage = `${baseMessage}${additionalMessageParts.join(' ')}`;
-
-  // Append hashtag to the end of the message
-  finalMessage = `${finalMessage} ${hashtag}`;
-
-  // Ensure message is within 300 characters
-  if (finalMessage.length > 300) {
-    finalMessage = finalMessage.substring(0, 297) + "...";
-  }
-
-   return { message: finalMessage, hashtag: hashtag };
+): MoonMessage {
+  const generator = new MoonMessageGenerator();
+  return generator.generateMessage(phase, illumination, monthIndex);
 }

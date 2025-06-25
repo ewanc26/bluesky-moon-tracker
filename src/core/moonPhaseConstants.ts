@@ -8,6 +8,18 @@ export const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ] as const;
 
+// Map alternative phase names to standard phases
+export const PHASE_ALIASES: Record<string, string> = {
+  "Dark Moon": "New Moon",
+  "New": "New Moon",
+  "Waxing": "Waxing Crescent",
+  "Full": "Full Moon",
+  "Waning": "Waning Crescent",
+  "First": "First Quarter",
+  "Last": "Last Quarter",
+  "Third Quarter": "Last Quarter"
+} as const;
+
 export const LYCANTHROPIC_PHRASES = [
   "Awooo!",
   "Call of the wild is strong tonight.",

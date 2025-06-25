@@ -5,19 +5,40 @@ import {
   PRIDE_REFERENCES, 
   MONTH_FLAIRS,
   PHASE_CONFIG,
-  MESSAGE_CONFIG
+  MESSAGE_CONFIG,
+  PHASE_ALIASES
 } from './moonPhaseConstants';
 import { getRandomElement, shuffleArray } from '../utils/arrayUtils';
 import type { MoonMessage } from '../types/moonPhase';
 
 export class MoonMessageGenerator {
-  private getBaseMessage(phase: string, illumination: number): string {
-    const illuminationFixed = illumination.toFixed(1);
-    const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
-    
-    if (!config) {
-      throw new Error(`Unknown moon phase: ${phase}`);
+  private normalizePhase(phase: string): string {
+    // Check if the phase is already a standard phase
+    if (phase in PHASE_CONFIG) {
+      return phase;
     }
+    
+    // Check for direct alias match
+    if (phase in PHASE_ALIASES) {
+      return PHASE_ALIASES[phase];
+    }
+    
+    // Try case-insensitive matching
+    const upperPhase = phase.toUpperCase();
+    for (const [alias, standardPhase] of Object.entries(PHASE_ALIASES)) {
+      if (alias.toUpperCase() === upperPhase) {
+        return standardPhase;
+      }
+    }
+    
+    // If no match found, throw error with helpful message
+    throw new Error(`Unknown moon phase: "${phase}". Supported phases are: ${Object.keys(PHASE_CONFIG).join(', ')}`);
+  }
+
+  private getBaseMessage(phase: string, illumination: number): string {
+    const normalizedPhase = this.normalizePhase(phase);
+    const illuminationFixed = illumination.toFixed(1);
+    const config = PHASE_CONFIG[normalizedPhase as keyof typeof PHASE_CONFIG];
 
     const messages = {
       "New Moon": `It's a New Moon, barely a whisper! Illumination: ${illuminationFixed}%.`,
@@ -30,7 +51,7 @@ export class MoonMessageGenerator {
       "Waning Crescent": `Waning Crescent, tiny sliver, ${illuminationFixed}% lit.`
     };
 
-    const baseMessage = messages[phase as keyof typeof messages];
+    const baseMessage = messages[normalizedPhase as keyof typeof messages];
     const lycanthropicPhrase = getRandomElement(LYCANTHROPIC_PHRASES);
     
     return `${config.emoji} ${baseMessage} ${lycanthropicPhrase}`;
@@ -72,10 +93,8 @@ export class MoonMessageGenerator {
       throw new Error(`Invalid month index: ${monthIndex}. Must be between 0 and 11.`);
     }
 
-    const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
-    if (!config) {
-      throw new Error(`Unknown moon phase: ${phase}`);
-    }
+    const normalizedPhase = this.normalizePhase(phase);
+    const config = PHASE_CONFIG[normalizedPhase as keyof typeof PHASE_CONFIG];
 
     const baseMessage = this.getBaseMessage(phase, illumination);
     const additionalMessages = this.getAdditionalMessages(monthIndex);

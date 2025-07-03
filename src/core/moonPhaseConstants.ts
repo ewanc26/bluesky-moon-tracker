@@ -16,8 +16,24 @@ export const PHASE_ALIASES: Record<string, string> = {
   "Full": "Full Moon",
   "Waning": "Waning Crescent",
   "First": "First Quarter",
+  "1st Quarter": "First Quarter",
   "Last": "Last Quarter",
-  "Third Quarter": "Last Quarter"
+  "Third Quarter": "Last Quarter",
+  "Half Moon": "First Quarter",
+  "2nd Quarter": "Full Moon",
+  "4th Quarter": "New Moon",
+  "Wolf Moon": "Full Moon",
+  "Snow Moon": "Full Moon",
+  "Worm Moon": "Full Moon",
+  "Pink Moon": "Full Moon",
+  "Flower Moon": "Full Moon",
+  "Strawberry Moon": "Full Moon",
+  "Buck Moon": "Full Moon",
+  "Sturgeon Moon": "Full Moon",
+  "Harvest Moon": "Full Moon",
+  "Hunter's Moon": "Full Moon",
+  "Beaver Moon": "Full Moon",
+  "Cold Moon": "Full Moon"
 } as const;
 
 export const LYCANTHROPIC_PHRASES = [

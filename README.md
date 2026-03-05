@@ -73,6 +73,10 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 
 This project is licensed under the MIT License. Please take a look at the [LICENSE](LICENSE) file for more details.
 
+## ☕ Support
+
+If you found this useful, consider [buying me a ko-fi](https://ko-fi.com/ewancroft)!
+
 ## Project Structure
 
 ```plaintext

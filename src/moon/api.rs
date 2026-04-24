@@ -31,10 +31,24 @@ async fn fetch_skytime(client: &reqwest::Client) -> Option<MoonPhaseData> {
         .ok()?;
 
     let body: serde_json::Value = resp.json().await.ok()?;
-    let data = body.get("data")?;
+    let data = body.get("data").or_else(|| {
+        eprintln!("[Skytime] No 'data' key in response");
+        None
+    })?;
 
     let today = now.format("%Y-%m-%d").to_string();
-    let entries = data.as_array()?;
+    // Skytime returns { "data": { "events": [...] } }
+    let entries = data
+        .get("events")
+        .and_then(|v| v.as_array())
+        .or_else(|| {
+            // Fallback: maybe data itself is an array
+            data.as_array()
+        })
+        .or_else(|| {
+            eprintln!("[Skytime] No 'events' array in data");
+            None
+        })?;
     // Skytime returns events keyed by phase date (e.g. "2026-04-24T02:32:17.627Z").
     // Find the entry whose date starts with today's date.
     let entry = entries
@@ -45,18 +59,29 @@ async fn fetch_skytime(client: &reqwest::Client) -> Option<MoonPhaseData> {
                 .map(|d| d.starts_with(&today))
                 .unwrap_or(false)
                 || e.get("calendar_date").and_then(|v| v.as_str()) == Some(&today)
+        })
+        .or_else(|| {
+            eprintln!("[Skytime] No entry found for today ({today}) among {} events", entries.len());
+            None
         })?;
 
     let phase_str = entry
         .get("phase")
         .or_else(|| entry.get("phase_name"))
-        .and_then(|v| v.as_str())?;
+        .and_then(|v| v.as_str())
+        .or_else(|| {
+            eprintln!("[Skytime] No 'phase' or 'phase_name' field in entry");
+            None
+        })?;
 
     if phase_str.is_empty() {
+        eprintln!("[Skytime] Phase string is empty");
         return None;
     }
 
-    let phase = MoonPhase::from_str_loose(phase_str).ok()?;
+    let phase = MoonPhase::from_str_loose(phase_str)
+        .map_err(|e| eprintln!("[Skytime] Phase parse error: {e}"))
+        .ok()?;
 
     // Skytime may not include illumination; use local calc as fallback
     let illumination = entry

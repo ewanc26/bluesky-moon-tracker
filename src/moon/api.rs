@@ -35,16 +35,21 @@ async fn fetch_skytime(client: &reqwest::Client) -> Option<MoonPhaseData> {
 
     let today = now.format("%Y-%m-%d").to_string();
     let entries = data.as_array()?;
+    // Skytime returns events keyed by phase date (e.g. "2026-04-24T02:32:17.627Z").
+    // Find the entry whose date starts with today's date.
     let entry = entries
         .iter()
         .find(|e| {
-            e.get("date").and_then(|v| v.as_str()) == Some(&today)
+            e.get("date")
+                .and_then(|v| v.as_str())
+                .map(|d| d.starts_with(&today))
+                .unwrap_or(false)
                 || e.get("calendar_date").and_then(|v| v.as_str()) == Some(&today)
         })?;
 
     let phase_str = entry
-        .get("phase_name")
-        .or_else(|| entry.get("phase"))
+        .get("phase")
+        .or_else(|| entry.get("phase_name"))
         .and_then(|v| v.as_str())?;
 
     if phase_str.is_empty() {
@@ -53,7 +58,14 @@ async fn fetch_skytime(client: &reqwest::Client) -> Option<MoonPhaseData> {
 
     let phase = MoonPhase::from_str_loose(phase_str).ok()?;
 
-    let illumination = entry.get("illumination").and_then(|v| v.as_f64())?;
+    // Skytime may not include illumination; use local calc as fallback
+    let illumination = entry
+        .get("illumination")
+        .and_then(|v| v.as_f64())
+        .unwrap_or_else(|| {
+            let local = calc::calculate_moon_phase(None);
+            local.illumination
+        });
     let illum = if illumination > 1.0 {
         illumination / 100.0
     } else {

@@ -142,6 +142,93 @@ Write the post now:"#
     )
 }
 
+/// Check if the Ollama server is reachable.
+async fn is_ollama_running(client: &reqwest::Client, url: &str) -> bool {
+    client
+        .get(format!("{url}/api/tags"))
+        .timeout(std::time::Duration::from_secs(3))
+        .send()
+        .await
+        .is_ok()
+}
+
+/// Start `ollama serve` in the background if it isn't already running.
+/// Returns true if Ollama is available (was already running or started successfully).
+async fn ensure_ollama_running(client: &reqwest::Client, url: &str) -> bool {
+    if is_ollama_running(client, url).await {
+        println!("[Ollama] Server already running");
+        return true;
+    }
+
+    println!("[Ollama] Server not running — starting...");
+
+    // Spawn `ollama serve` as a detached background process
+    match std::process::Command::new("ollama")
+        .arg("serve")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .stdin(std::process::Stdio::null())
+        .spawn()
+    {
+        Ok(child) => {
+            // Prevent zombie process
+            let _ = child.id();
+            // Drop the Child handle — the process keeps running detached
+        }
+        Err(e) => {
+            eprintln!("[Ollama] Failed to start server: {e}");
+            return false;
+        }
+    }
+
+    // Poll until the server is reachable (max 15s)
+    let start = std::time::Instant::now();
+    while start.elapsed() < std::time::Duration::from_secs(15) {
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        if is_ollama_running(client, url).await {
+            println!("[Ollama] Server started successfully");
+            return true;
+        }
+    }
+
+    eprintln!("[Ollama] Server did not start within timeout");
+    false
+}
+
+/// Stop the Ollama server by sending a POST to /api/shutdown (Ollama 0.5+).
+/// Falls back to `pkill` if the API isn't available.
+async fn stop_ollama(client: &reqwest::Client, url: &str) {
+    println!("[Ollama] Stopping server...");
+
+    // Try the Ollama shutdown endpoint first
+    let shutdown_ok = client
+        .post(format!("{url}/api/shutdown"))
+        .timeout(std::time::Duration::from_secs(5))
+        .send()
+        .await
+        .is_ok();
+
+    if !shutdown_ok {
+        // Fallback: kill the ollama server process
+        let _ = std::process::Command::new("pkill")
+            .arg("-f")
+            .arg("ollama serve")
+            .output();
+    }
+
+    // Wait briefly for it to shut down
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+
+    if is_ollama_running(client, url).await {
+        eprintln!("[Ollama] Warning: server may still be running");
+    } else {
+        println!("[Ollama] Server stopped");
+    }
+}
+
+/// Track whether we started Ollama ourselves (so we know to stop it after).
+static WE_STARTED_OLLAMA: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 async fn generate_with_ollama(
     client: &reqwest::Client,
     model: &str,
@@ -152,6 +239,16 @@ async fn generate_with_ollama(
     month_name: &str,
     hashtag: &str,
 ) -> Option<String> {
+    // Ensure Ollama is running before attempting generation
+    let was_running = is_ollama_running(client, url).await;
+    if !was_running {
+        if !ensure_ollama_running(client, url).await {
+            eprintln!("[Ollama] Server unavailable, falling back to templates");
+            return None;
+        }
+        WE_STARTED_OLLAMA.store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+
     let prompt = build_ollama_prompt(phase, illumination, month_name, hashtag);
     let endpoint = format!("{url}/api/generate");
 
@@ -167,35 +264,45 @@ async fn generate_with_ollama(
         }
     });
 
-    let resp = client
-        .post(&endpoint)
-        .json(&body)
-        .timeout(std::time::Duration::from_millis(timeout_ms))
-        .header("Content-Type", "application/json")
-        .send()
-        .await
-        .ok()?;
+    let result = async {
+        let resp = client
+            .post(&endpoint)
+            .json(&body)
+            .timeout(std::time::Duration::from_millis(timeout_ms))
+            .header("Content-Type", "application/json")
+            .send()
+            .await
+            .ok()?;
 
-    let result: OllamaResponse = resp.json().await.ok()?;
+        let result: OllamaResponse = resp.json().await.ok()?;
 
-    let mut text = result.response.trim().to_string();
-    if text.is_empty() {
-        eprintln!("[Ollama] Empty response from model");
-        return None;
+        let mut text = result.response.trim().to_string();
+        if text.is_empty() {
+            eprintln!("[Ollama] Empty response from model");
+            return None;
+        }
+
+        // Strip surrounding quotes
+        if text.starts_with('"') && text.ends_with('"') && text.len() > 1 {
+            text = text[1..text.len() - 1].to_string();
+        }
+
+        // Enforce character limit
+        if text.len() > 300 {
+            text = truncate_message(&text, 300);
+        }
+
+        println!("[Ollama] Generated: {text}");
+        Some(text)
+    }
+    .await;
+
+    // If we started Ollama ourselves, stop it now
+    if WE_STARTED_OLLAMA.swap(false, std::sync::atomic::Ordering::Relaxed) {
+        stop_ollama(client, url).await;
     }
 
-    // Strip surrounding quotes
-    if text.starts_with('"') && text.ends_with('"') && text.len() > 1 {
-        text = text[1..text.len() - 1].to_string();
-    }
-
-    // Enforce character limit
-    if text.len() > 300 {
-        text = truncate_message(&text, 300);
-    }
-
-    println!("[Ollama] Generated: {text}");
-    Some(text)
+    result
 }
 
 /// Generate a moon phase message. Tries Ollama first (if configured), falls back to templates.

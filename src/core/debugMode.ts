@@ -1,5 +1,5 @@
-import { MOON_PHASES, MONTH_NAMES } from './moonPhaseConstants';
-import { getPlayfulMoonMessage } from './moonPhaseMessages';
+import { MOON_PHASES, MONTH_NAMES } from "./moonPhaseConstants";
+import { getPlayfulMoonMessage } from "./moonPhaseMessages";
 
 export class DebugMode {
   public async runDebugLoop(): Promise<void> {
@@ -8,26 +8,34 @@ export class DebugMode {
     for (const month of MONTH_NAMES) {
       const monthIndex = MONTH_NAMES.indexOf(month);
       console.log(`\n--- ${month.toUpperCase()} ---`);
-      
+
       for (const phase of MOON_PHASES) {
         const illumination = Math.random() * 100;
-        const { message, hashtag } = getPlayfulMoonMessage(phase, illumination, monthIndex);
-        
+        const { message, hashtag } = await getPlayfulMoonMessage(
+          phase,
+          illumination,
+          monthIndex,
+        );
+
         const mockPost = {
           text: message,
-          facets: [{
-            features: [{
-              $type: "app.bsky.richtext.facet#tag",
-              tag: hashtag.replace('#', '')
-            }]
-          }]
+          facets: [
+            {
+              features: [
+                {
+                  $type: "app.bsky.richtext.facet#tag",
+                  tag: hashtag.replace("#", ""),
+                },
+              ],
+            },
+          ],
         };
 
         console.log(`Phase: ${phase}`);
         console.log(`Message: ${message}`);
         console.log(`Length: ${message.length} characters`);
         console.log(`Mock Post:`, JSON.stringify(mockPost, null, 2));
-        console.log('---');
+        console.log("---");
       }
     }
   }

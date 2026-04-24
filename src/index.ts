@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import { PostScheduler } from "./core/scheduler";
 import { DebugMode } from "./core/debugMode";
 import { postMoonPhaseToBluesky } from "./services/blueskyService";
+import { isOllamaEnabled, getOllamaConfig } from "./services/ollamaService";
 
 // Load environment variables
 dotenv.config({ path: "./src/config.env" });
@@ -12,13 +13,24 @@ class MoonPhaseBot {
 
   constructor() {
     this.isDebugMode = process.env.DEBUG_MODE === "true";
-    this.hasCredentials = !!(process.env.BLUESKY_USERNAME && process.env.BLUESKY_PASSWORD);
+    this.hasCredentials = !!(
+      process.env.BLUESKY_USERNAME && process.env.BLUESKY_PASSWORD
+    );
   }
 
   public async run(): Promise<void> {
     console.log("🌙 Moon Phase Bot Starting...");
-    console.log(`Debug Mode: ${this.isDebugMode ? 'ON' : 'OFF'}`);
-    console.log(`Credentials Available: ${this.hasCredentials ? 'YES' : 'NO'}`);
+    console.log(`Debug Mode: ${this.isDebugMode ? "ON" : "OFF"}`);
+    console.log(`Credentials Available: ${this.hasCredentials ? "YES" : "NO"}`);
+
+    const ollamaConfig = getOllamaConfig();
+    if (ollamaConfig) {
+      console.log(
+        `Ollama: ENABLED (model: ${ollamaConfig.model}, url: ${ollamaConfig.url})`,
+      );
+    } else {
+      console.log("Ollama: DISABLED (set OLLAMA_MODEL to enable)");
+    }
 
     try {
       if (this.isDebugMode) {
@@ -37,7 +49,9 @@ class MoonPhaseBot {
       console.log("Debug mode with credentials - posting immediately...");
       await postMoonPhaseToBluesky();
     } else {
-      console.log("Debug mode without credentials - generating sample messages...");
+      console.log(
+        "Debug mode without credentials - generating sample messages...",
+      );
       const debugMode = new DebugMode();
       await debugMode.runDebugLoop();
     }
@@ -45,19 +59,21 @@ class MoonPhaseBot {
 
   private async runProductionMode(): Promise<void> {
     if (!this.hasCredentials) {
-      throw new Error("Production mode requires BLUESKY_USERNAME and BLUESKY_PASSWORD environment variables");
+      throw new Error(
+        "Production mode requires BLUESKY_USERNAME and BLUESKY_PASSWORD environment variables",
+      );
     }
 
     const scheduler = new PostScheduler();
-    
+
     // Handle graceful shutdown
-    process.on('SIGINT', () => {
+    process.on("SIGINT", () => {
       console.log("\nReceived SIGINT, shutting down gracefully...");
       scheduler.stop();
       process.exit(0);
     });
 
-    process.on('SIGTERM', () => {
+    process.on("SIGTERM", () => {
       console.log("\nReceived SIGTERM, shutting down gracefully...");
       scheduler.stop();
       process.exit(0);
@@ -69,7 +85,7 @@ class MoonPhaseBot {
 
 // Entry point
 const bot = new MoonPhaseBot();
-bot.run().catch(error => {
+bot.run().catch((error) => {
   console.error("Unhandled error:", error);
   process.exit(1);
 });

@@ -1,7 +1,7 @@
 import { BskyAgent, RichText, AppBskyRichtextFacet } from "@atproto/api";
 import { getMoonPhase } from "./moonPhaseService";
 import { getPlayfulMoonMessage } from "../core/moonPhaseMessages";
-import type { BlueskyPost } from '../types/moonPhase';
+import type { BlueskyPost } from "../types/moonPhase";
 
 export class BlueskyService {
   private agent: BskyAgent;
@@ -17,16 +17,21 @@ export class BlueskyService {
     const password = process.env.BLUESKY_PASSWORD;
 
     if (!username || !password) {
-      throw new Error("Missing required environment variables: BLUESKY_USERNAME and BLUESKY_PASSWORD");
+      throw new Error(
+        "Missing required environment variables: BLUESKY_USERNAME and BLUESKY_PASSWORD",
+      );
     }
 
     return { username, password };
   }
 
-  private createHashtagFacet(text: string, hashtag: string): AppBskyRichtextFacet.Main | null {
-    const hashtagWithHash = hashtag.startsWith('#') ? hashtag : `#${hashtag}`;
+  private createHashtagFacet(
+    text: string,
+    hashtag: string,
+  ): AppBskyRichtextFacet.Main | null {
+    const hashtagWithHash = hashtag.startsWith("#") ? hashtag : `#${hashtag}`;
     const hashtagIndex = text.lastIndexOf(hashtagWithHash);
-    
+
     if (hashtagIndex === -1) {
       console.warn(`Hashtag ${hashtagWithHash} not found in text`);
       return null;
@@ -35,34 +40,40 @@ export class BlueskyService {
     const encoder = new TextEncoder();
     const beforeHashtag = text.substring(0, hashtagIndex);
     const hashtagText = hashtagWithHash;
-    
+
     const byteStart = encoder.encode(beforeHashtag).length;
     const byteEnd = byteStart + encoder.encode(hashtagText).length;
 
     return {
       index: { byteStart, byteEnd },
-      features: [{
-        $type: 'app.bsky.richtext.facet#tag',
-        tag: hashtag.replace(/^#/, ''),
-      }],
+      features: [
+        {
+          $type: "app.bsky.richtext.facet#tag",
+          tag: hashtag.replace(/^#/, ""),
+        },
+      ],
     };
   }
 
-  private async processRichText(postText: string, hashtag: string): Promise<RichText> {
+  private async processRichText(
+    postText: string,
+    hashtag: string,
+  ): Promise<RichText> {
     const rt = new RichText({ text: postText });
-    
+
     // Detect facets automatically
     await rt.detectFacets(this.agent);
 
     // Manually ensure hashtag facet is correct
     const hashtagFacet = this.createHashtagFacet(postText, hashtag);
-    
+
     if (hashtagFacet) {
-      const existingHashtagFacet = rt.facets?.find(facet => 
-        facet.features.some(feature => 
-          feature.$type === 'app.bsky.richtext.facet#tag' && 
-          feature.tag === hashtag.replace(/^#/, '')
-        )
+      const existingHashtagFacet = rt.facets?.find((facet) =>
+        facet.features.some(
+          (feature) =>
+            feature.$type === "app.bsky.richtext.facet#tag" &&
+            feature.tag === hashtag.replace(/^#/, ""),
+        ),
       );
 
       if (!existingHashtagFacet) {
@@ -94,7 +105,7 @@ export class BlueskyService {
     if (process.env.DEBUG_MODE === "true") {
       console.log("Final facets sent with post:");
       console.log(JSON.stringify(rt.facets, null, 2));
-      
+
       const encoder = new TextEncoder();
       const utf8Bytes = encoder.encode(postText);
       console.log(`Post text UTF-8 length: ${utf8Bytes.length} bytes`);
@@ -104,7 +115,7 @@ export class BlueskyService {
 
   public async login(): Promise<void> {
     const { username, password } = this.validateCredentials();
-    
+
     try {
       await this.agent.login({ identifier: username, password });
       console.log("Successfully logged in to Bluesky");
@@ -121,14 +132,12 @@ export class BlueskyService {
       await this.login();
 
       const moonPhaseData = await getMoonPhase();
-      if (!moonPhaseData) {
-        throw new Error("Could not retrieve moon phase data");
-      }
+      console.log(`Moon phase source: ${moonPhaseData.source || "unknown"}`);
 
-      const { message: postText, hashtag } = getPlayfulMoonMessage(
+      const { message: postText, hashtag } = await getPlayfulMoonMessage(
         moonPhaseData.Phase,
         moonPhaseData.Illumination * 100,
-        new Date().getMonth()
+        new Date().getMonth(),
       );
 
       const rt = await this.processRichText(postText, hashtag);
@@ -136,9 +145,8 @@ export class BlueskyService {
 
       await this.agent.post(postRecord);
       console.log("Successfully posted:", postText);
-      
-      this.logDebugInfo(postText, rt);
 
+      this.logDebugInfo(postText, rt);
     } catch (error) {
       console.error("Error during Bluesky posting process:", error);
       throw error;

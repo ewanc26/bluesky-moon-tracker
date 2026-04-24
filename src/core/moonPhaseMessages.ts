@@ -1,15 +1,16 @@
-import { 
-  MONTH_NAMES, 
-  LYCANTHROPIC_PHRASES, 
-  BRITISH_REFERENCES, 
-  PRIDE_REFERENCES, 
+import {
+  MONTH_NAMES,
+  LYCANTHROPIC_PHRASES,
+  BRITISH_REFERENCES,
+  PRIDE_REFERENCES,
   MONTH_FLAIRS,
   PHASE_CONFIG,
   MESSAGE_CONFIG,
-  PHASE_ALIASES
-} from './moonPhaseConstants';
-import { getRandomElement, shuffleArray } from '../utils/arrayUtils';
-import type { MoonMessage } from '../types/moonPhase';
+  PHASE_ALIASES,
+} from "./moonPhaseConstants";
+import { getRandomElement, shuffleArray } from "../utils/arrayUtils";
+import { generateWithOllama, isOllamaEnabled } from "../services/ollamaService";
+import type { MoonMessage } from "../types/moonPhase";
 
 export class MoonMessageGenerator {
   private normalizePhase(phase: string): string {
@@ -17,12 +18,12 @@ export class MoonMessageGenerator {
     if (phase in PHASE_CONFIG) {
       return phase;
     }
-    
+
     // Check for direct alias match
     if (phase in PHASE_ALIASES) {
       return PHASE_ALIASES[phase];
     }
-    
+
     // Try case-insensitive matching
     const upperPhase = phase.toUpperCase();
     for (const [alias, standardPhase] of Object.entries(PHASE_ALIASES)) {
@@ -30,9 +31,11 @@ export class MoonMessageGenerator {
         return standardPhase;
       }
     }
-    
+
     // If no match found, throw error with helpful message
-    throw new Error(`Unknown moon phase: "${phase}". Supported phases are: ${Object.keys(PHASE_CONFIG).join(', ')}`);
+    throw new Error(
+      `Unknown moon phase: "${phase}". Supported phases are: ${Object.keys(PHASE_CONFIG).join(", ")}`,
+    );
   }
 
   private getBaseMessage(phase: string, illumination: number): string {
@@ -48,12 +51,12 @@ export class MoonMessageGenerator {
       "Full Moon": `By Jove, a magnificent Full Moon! ${illuminationFixed}% light.`,
       "Waning Gibbous": `Waning Gibbous gracefully fading, ${illuminationFixed}% illuminated.`,
       "Last Quarter": `Last Quarter moon, ${illuminationFixed}% visible!`,
-      "Waning Crescent": `Waning Crescent, tiny sliver, ${illuminationFixed}% lit.`
+      "Waning Crescent": `Waning Crescent, tiny sliver, ${illuminationFixed}% lit.`,
     };
 
     const baseMessage = messages[normalizedPhase as keyof typeof messages];
     const lycanthropicPhrase = getRandomElement(LYCANTHROPIC_PHRASES);
-    
+
     return `${config.emoji} ${baseMessage} ${lycanthropicPhrase}`;
   }
 
@@ -62,7 +65,10 @@ export class MoonMessageGenerator {
     const additionalMessages: string[] = [];
 
     // Add month-specific flair
-    if (Math.random() < MESSAGE_CONFIG.MONTH_FLAIR_CHANCE && MONTH_FLAIRS[currentMonth]) {
+    if (
+      Math.random() < MESSAGE_CONFIG.MONTH_FLAIR_CHANCE &&
+      MONTH_FLAIRS[currentMonth]
+    ) {
       additionalMessages.push(getRandomElement(MONTH_FLAIRS[currentMonth]));
     }
 
@@ -72,7 +78,10 @@ export class MoonMessageGenerator {
     }
 
     // Add Pride reference for June
-    if (currentMonth === "June" && Math.random() < MESSAGE_CONFIG.PRIDE_REFERENCE_CHANCE_JUNE) {
+    if (
+      currentMonth === "June" &&
+      Math.random() < MESSAGE_CONFIG.PRIDE_REFERENCE_CHANCE_JUNE
+    ) {
       additionalMessages.push(getRandomElement(PRIDE_REFERENCES));
     }
 
@@ -83,37 +92,84 @@ export class MoonMessageGenerator {
     if (message.length <= MESSAGE_CONFIG.MAX_LENGTH) {
       return message;
     }
-    
-    const truncateLength = MESSAGE_CONFIG.MAX_LENGTH - MESSAGE_CONFIG.TRUNCATE_SUFFIX.length;
-    return message.substring(0, truncateLength) + MESSAGE_CONFIG.TRUNCATE_SUFFIX;
+
+    const truncateLength =
+      MESSAGE_CONFIG.MAX_LENGTH - MESSAGE_CONFIG.TRUNCATE_SUFFIX.length;
+    return (
+      message.substring(0, truncateLength) + MESSAGE_CONFIG.TRUNCATE_SUFFIX
+    );
   }
 
-  public generateMessage(phase: string, illumination: number, monthIndex: number): MoonMessage {
-    if (monthIndex < 0 || monthIndex > 11) {
-      throw new Error(`Invalid month index: ${monthIndex}. Must be between 0 and 11.`);
-    }
-
+  private generateTemplateMessage(
+    phase: string,
+    illumination: number,
+    monthIndex: number,
+  ): MoonMessage {
     const normalizedPhase = this.normalizePhase(phase);
     const config = PHASE_CONFIG[normalizedPhase as keyof typeof PHASE_CONFIG];
 
     const baseMessage = this.getBaseMessage(phase, illumination);
     const additionalMessages = this.getAdditionalMessages(monthIndex);
-    
-    const fullMessage = [baseMessage, ...additionalMessages, config.hashtag].join(' ');
+
+    const fullMessage = [
+      baseMessage,
+      ...additionalMessages,
+      config.hashtag,
+    ].join(" ");
     const truncatedMessage = this.truncateMessage(fullMessage);
 
     return {
       message: truncatedMessage,
-      hashtag: config.hashtag
+      hashtag: config.hashtag,
+      source: "template",
     };
+  }
+
+  public async generateMessage(
+    phase: string,
+    illumination: number,
+    monthIndex: number,
+  ): Promise<MoonMessage> {
+    if (monthIndex < 0 || monthIndex > 11) {
+      throw new Error(
+        `Invalid month index: ${monthIndex}. Must be between 0 and 11.`,
+      );
+    }
+
+    const normalizedPhase = this.normalizePhase(phase);
+    const config = PHASE_CONFIG[normalizedPhase as keyof typeof PHASE_CONFIG];
+    const monthName = MONTH_NAMES[monthIndex];
+
+    // Try Ollama first if enabled
+    if (isOllamaEnabled()) {
+      const ollamaText = await generateWithOllama(
+        normalizedPhase,
+        illumination,
+        monthName,
+        config.hashtag,
+      );
+
+      if (ollamaText) {
+        return {
+          message: ollamaText,
+          hashtag: config.hashtag,
+          source: "ollama",
+        };
+      }
+
+      console.log("[Ollama] Generation failed, falling back to templates");
+    }
+
+    // Fallback to template generation
+    return this.generateTemplateMessage(phase, illumination, monthIndex);
   }
 }
 
-export function getPlayfulMoonMessage(
-  phase: string, 
-  illumination: number, 
-  monthIndex: number
-): MoonMessage {
+export async function getPlayfulMoonMessage(
+  phase: string,
+  illumination: number,
+  monthIndex: number,
+): Promise<MoonMessage> {
   const generator = new MoonMessageGenerator();
   return generator.generateMessage(phase, illumination, monthIndex);
 }

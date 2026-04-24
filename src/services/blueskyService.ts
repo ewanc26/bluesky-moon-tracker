@@ -55,15 +55,25 @@ export class BlueskyService {
     };
   }
 
-  private async processRichText(postText: string): Promise<RichText> {
+  private async processRichText(
+    postText: string,
+    hashtag?: string,
+  ): Promise<RichText> {
     const rt = new RichText({ text: postText });
 
     // Detect all facets automatically (URLs, mentions, hashtags)
     await rt.detectFacets(this.agent);
 
+    if (hashtag) {
+      const hashtagFacet = this.createHashtagFacet(postText, hashtag);
+      if (hashtagFacet) {
+        rt.facets = [...(rt.facets ?? []), hashtagFacet];
+      }
+    }
+
     // Sort facets by byteStart
     if (rt.facets && rt.facets.length > 1) {
-      rt.facets.sort((a, b) => a.index.byteStart - b.index.byteEnd);
+      rt.facets.sort((a, b) => a.index.byteStart - b.index.byteStart);
     }
 
     return rt;

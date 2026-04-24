@@ -6,6 +6,10 @@ build/
 # TypeCheck results
 *.tsbuildinfo
 
+# Rust build artifacts
+/target/
+Cargo.lock
+
 # VS Code files
 .vscode/
 
@@ -14,8 +18,9 @@ build/
 *.swo
 
 # Environment files
-.env*
+.env
 *.env
+!.env.example
 
 # Testing coverage reports
 coverage/

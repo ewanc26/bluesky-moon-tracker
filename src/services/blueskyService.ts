@@ -55,38 +55,15 @@ export class BlueskyService {
     };
   }
 
-  private async processRichText(
-    postText: string,
-    hashtag: string,
-  ): Promise<RichText> {
+  private async processRichText(postText: string): Promise<RichText> {
     const rt = new RichText({ text: postText });
 
-    // Detect facets automatically
+    // Detect all facets automatically (URLs, mentions, hashtags)
     await rt.detectFacets(this.agent);
-
-    // Manually ensure hashtag facet is correct
-    const hashtagFacet = this.createHashtagFacet(postText, hashtag);
-
-    if (hashtagFacet) {
-      const existingHashtagFacet = rt.facets?.find((facet) =>
-        facet.features.some(
-          (feature) =>
-            feature.$type === "app.bsky.richtext.facet#tag" &&
-            feature.tag === hashtag.replace(/^#/, ""),
-        ),
-      );
-
-      if (!existingHashtagFacet) {
-        rt.facets = [...(rt.facets || []), hashtagFacet];
-        console.log("Manually added hashtag facet");
-      } else {
-        console.log("Hashtag facet already detected automatically");
-      }
-    }
 
     // Sort facets by byteStart
     if (rt.facets && rt.facets.length > 1) {
-      rt.facets.sort((a, b) => a.index.byteStart - b.index.byteStart);
+      rt.facets.sort((a, b) => a.index.byteStart - b.index.byteEnd);
     }
 
     return rt;

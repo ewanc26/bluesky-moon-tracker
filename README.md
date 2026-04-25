@@ -2,72 +2,89 @@
 
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
-***This repository is available on [GitHub](https://github.com/ewanc26/bluesky-moon-tracker) and [Tangled](https://tangled.sh/did:plc:ofrbh253gwicbkc5nktqepol/bluesky-moon-tracker). GitHub is the primary version, and the Tangled version is a mirror.***
+**_This repository is available on [GitHub](https://github.com/ewanc26/bluesky-moon-tracker) and [Tangled](https://tangled.sh/did:plc:ofrbh253gwicbkc5nktqepol/bluesky-moon-tracker). GitHub is the primary version, and the Tangled version is a mirror._**
 
-Bluesky Moon Tracker is a simple script designed to periodically post the current moon phase on Bluesky. The bot fetches moon phase data from the Farmsense APIThe bot posts playful messages daily at 00:00 UTC, tailored to the lunar phase and current month, with a slightly lycanthropic touch, British references, and occasional Pride references in June.
+Bluesky Moon Tracker is a small Rust bot that posts the current moon phase to Bluesky once per day at 00:00 UTC. It prefers moon data from the Skytime API, falls back to a local lunar calculation when needed, and can optionally use Ollama to generate the post text.
 
-## Table of Contents
+> 🧶 Also available on [Tangled](https://tangled.org/ewancroft.uk/bluesky-moon-tracker)
 
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+## Features
 
-## Installation
+- Posts once per day at 00:00 UTC with a graceful shutdown loop
+- Fetches moon phase data from Skytime and falls back to a local calculation if the API is unavailable
+- Optionally uses Ollama to generate the post text
+- Falls back to template-based message generation if Ollama is not configured or fails
+- Supports a debug mode for generating sample messages or posting immediately with credentials
+- Designed to run as a background service such as a macOS launchd job
 
-1. **Clone the Repository:**
+## Requirements
 
-   ```sh
-   git clone https://github.com/ewanc26/bluesky-moon-tracker.git
-   cd bluesky-moon-tracker
-   ```
-
-2. **Initialize and Install Dependencies:**
-
-   ```sh
-   npm run dev:init
-   ```
+- Rust 2024 toolchain with `cargo`
+- A Bluesky account and app password
+- Optional: Ollama installed locally if you want AI-generated post text
 
 ## Configuration
 
-1. **Create a Configuration File:**
+Create a `.env` file in the repository root:
 
-   Create a file named `config.env` in the `src` directory with the following contents:
+```ini
+BLUESKY_USERNAME=your_handle.bsky.social
+BLUESKY_PASSWORD=your_app_password
+BLUESKY_PDS_URL=https://bsky.social
+DEBUG_MODE=false
+OLLAMA_MODEL=llama3.2
+OLLAMA_URL=http://localhost:11434
+OLLAMA_TIMEOUT=30000
+```
 
-   ```ini
-   BLUESKY_USERNAME="your_bluesky_username"
-   BLUESKY_PASSWORD="your_bluesky_password"
-   BLUESKY_PDS_URL="https://bsky.social" # Optional: Your PDS URL if not using bsky.social
-   DEBUG_MODE="false" # Set to "true" to enable debug logging of moon messages
-   ```
+### Environment variables
 
-2. **Fill in Your Bluesky Credentials:**
-
-   Replace `your_bluesky_username` and `your_bluesky_password` with your actual Bluesky account credentials.
+- `BLUESKY_USERNAME` / `BLUESKY_PASSWORD` — Bluesky login credentials
+- `BLUESKY_PDS_URL` — optional PDS URL, defaults to `https://bsky.social`
+- `DEBUG_MODE` — set to `true` to print sample messages or post immediately when credentials are present
+- `OLLAMA_MODEL` — enables Ollama generation when set
+- `OLLAMA_URL` — Ollama server URL, defaults to `http://localhost:11434`
+- `OLLAMA_TIMEOUT` — request timeout in milliseconds, defaults to `30000`
 
 ## Usage
 
-To run the bot, use the following command:
+### Development
 
-```bash
-npm run dev:start
+```sh
+cargo run
 ```
 
-This command will start the bot, which will post the current moon phase daily at 00:00 UTC. If the current time is past 00:00 UTC, it will post immediately and then schedule the next post for 00:00 UTC the following day.
+### Release build
 
-### Debug Mode
+```sh
+cargo build --release
+./target/release/bluesky-moon-tracker
+```
 
-When `DEBUG_MODE` is set to `true` in `config.env`:
+### Debug mode
 
-- If `BLUESKY_USERNAME` and `BLUESKY_PASSWORD` are provided, the bot will attempt to post to Bluesky immediately upon starting.
-- If Bluesky credentials are not provided, the bot will log all possible combinations of moon phase messages to the console, demonstrating message generation without making actual posts.
+Set `DEBUG_MODE=true` to run the template generator without scheduling posts. If Bluesky credentials are present, the bot posts immediately once and exits its debug flow.
 
-This is useful for testing the full posting functionality or just the message generation.
+## Project structure
 
-## Contributing
+```text
+src/
+├── main.rs             # Entry point, config loading, runtime mode selection
+├── config.rs           # Environment parsing
+├── bluesky.rs          # Bluesky login and post creation
+├── scheduler.rs        # UTC-midnight scheduler
+└── moon/
+    ├── api.rs          # Skytime + local moon phase lookup
+    ├── calc.rs         # Local lunar phase calculation
+    ├── constants.rs    # Phases, aliases, and message constants
+    └── messages.rs     # Template and Ollama message generation
+```
 
-Contributions are welcome! Please fork the repository and submit a pull request with your changes. Ensure that your code follows the existing style and includes appropriate tests.
+## Notes
+
+- Skytime is tried first; local phase calculation is used as a fallback.
+- Ollama is optional. If it is not configured or unavailable, the bot uses template messages instead.
+- The bot is intended to be run continuously as a background process or service.
 
 ## License
 
@@ -76,53 +93,3 @@ This project is licensed under the MIT License. Please take a look at the [LICEN
 ## ☕ Support
 
 If you found this useful, consider [buying me a ko-fi](https://ko-fi.com/ewancroft)!
-
-## Project Structure
-
-```plaintext
-bluesky-moon-tracker/
-│
-├── src/
-│   ├── config.env                # Environment configuration file
-│   ├── index.ts                  # Main script for the bot, orchestrates the bot's operations
-│   ├── services/
-│   │   ├── blueskyService.ts     # Handles Bluesky login and posting
-│   │   └── moonPhaseService.ts   # Fetches moon phase data from the API
-│   ├── core/
-│   │   ├── moonPhaseConstants.ts
-│   │   ├── moonPhaseMessages.ts     # Generates playful moon messages
-│   │   └── timeUtils.ts          # Utility functions for time calculations
-│
-├── package.json                  # Node.js project metadata and dependencies
-└── README.md                     # This README file
-```
-
-## Explanation of Files
-
-### `src/config.env`
-
-This file stores the Bluesky credentials required to log in and post. Please make sure you keep this file secure and do not share it publicly.
-
-### `src/index.ts`
-
-This is the main script that orchestrates the bot's functionality, including loading environment variables and scheduling daily posts.
-
-### `src/services/blueskyService.ts`
-
-This file handles the authentication with Bluesky and the actual posting of messages.
-
-### `src/services/moonPhaseService.ts`
-
-This file is responsible for fetching the current moon phase data from the Farmsense API.
-
-### `src/core/moonPhaseConstants.ts`
-
-This file contains constants related to moon phases, such as emojis and hashtags.
-
-### `src/core/moonPhaseMessages.ts`
-
-This file contains the logic for generating the playful moon phase messages, including the various phrases and conditional flair.
-
-### `src/core/timeUtils.ts`
-
-This file provides utility functions related to time calculations, specifically for scheduling the daily posts.

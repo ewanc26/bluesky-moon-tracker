@@ -4,125 +4,100 @@
 
 ***This repository is available on [GitHub](https://github.com/ewanc26/bluesky-moon-tracker) and [Tangled](https://tangled.sh/did:plc:ofrbh253gwicbkc5nktqepol/bluesky-moon-tracker). GitHub is the primary version, and the Tangled version is a mirror.***
 
-Bluesky Moon Tracker is a simple script designed to periodically post the current moon phase on Bluesky. The bot fetches moon phase data from the Farmsense APIThe bot posts playful messages daily at 00:00 UTC, tailored to the lunar phase and current month, with a slightly lycanthropic touch, British references, and occasional Pride references in June.
+Bluesky Moon Tracker is a Rust bot that posts the current moon phase to Bluesky. It can run in a normal scheduled mode for daily posting, or in a debug mode that prints sample output or performs a one-off post when credentials are present.
 
-## Table of Contents
+## Features
 
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+- Rust implementation using Tokio for async scheduling
+- Posts moon phase updates to Bluesky
+- Optional Ollama integration for AI-generated post text
+- Debug mode for local testing without scheduled posting
+- Environment-based configuration via `.env`
 
 ## Installation
 
-1. **Clone the Repository:**
+1. Clone the repository:
 
    ```sh
    git clone https://github.com/ewanc26/bluesky-moon-tracker.git
    cd bluesky-moon-tracker
    ```
 
-2. **Initialize and Install Dependencies:**
+2. Build the project with Cargo:
 
    ```sh
-   npm run dev:init
+   cargo build --release
    ```
 
 ## Configuration
 
-1. **Create a Configuration File:**
+Copy the example environment file and fill in your values:
 
-   Create a file named `config.env` in the `src` directory with the following contents:
+```sh
+cp .env.example .env
+```
 
-   ```ini
-   BLUESKY_USERNAME="your_bluesky_username"
-   BLUESKY_PASSWORD="your_bluesky_password"
-   BLUESKY_PDS_URL="https://bsky.social" # Optional: Your PDS URL if not using bsky.social
-   DEBUG_MODE="false" # Set to "true" to enable debug logging of moon messages
-   ```
+Available settings:
 
-2. **Fill in Your Bluesky Credentials:**
+```ini
+BLUESKY_USERNAME="your_bluesky_username"
+BLUESKY_PASSWORD="your_bluesky_password"
+BLUESKY_PDS_URL="https://bsky.social"
+DEBUG_MODE="true"
 
-   Replace `your_bluesky_username` and `your_bluesky_password` with your actual Bluesky account credentials.
+# Optional Ollama integration
+# OLLAMA_MODEL=""
+# OLLAMA_URL="http://localhost:11434"
+# OLLAMA_TIMEOUT="30000"
+```
+
+- `DEBUG_MODE="true"` prints sample output when credentials are missing.
+- `DEBUG_MODE="true"` performs an immediate test post when credentials are present.
+- `DEBUG_MODE="false"` runs the normal scheduled posting mode and requires Bluesky credentials.
 
 ## Usage
 
-To run the bot, use the following command:
+Run the bot with Cargo:
 
-```bash
-npm run dev:start
+```sh
+cargo run
 ```
 
-This command will start the bot, which will post the current moon phase daily at 00:00 UTC. If the current time is past 00:00 UTC, it will post immediately and then schedule the next post for 00:00 UTC the following day.
+Or run the release binary directly:
 
-### Debug Mode
+```sh
+./target/release/bluesky-moon-tracker
+```
 
-When `DEBUG_MODE` is set to `true` in `config.env`:
+## Project structure
 
-- If `BLUESKY_USERNAME` and `BLUESKY_PASSWORD` are provided, the bot will attempt to post to Bluesky immediately upon starting.
-- If Bluesky credentials are not provided, the bot will log all possible combinations of moon phase messages to the console, demonstrating message generation without making actual posts.
+```text
+bluesky-moon-tracker/
+├── .env.example
+├── Cargo.toml
+├── README.md
+└── src/
+    ├── bluesky.rs
+    ├── config.rs
+    ├── main.rs
+    ├── moon/
+    └── scheduler.rs
+```
 
-This is useful for testing the full posting functionality or just the message generation.
+## Development
+
+Useful commands:
+
+```sh
+cargo fmt
+cargo check
+cargo test
+```
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request with your changes. Ensure that your code follows the existing style and includes appropriate tests.
+Contributions are welcome. Please open an issue or pull request if you want to improve the bot.
 
 ## License
 
-This project is licensed under the MIT License. Please take a look at the [LICENSE](LICENSE) file for more details.
-
-## ☕ Support
-
-If you found this useful, consider [buying me a ko-fi](https://ko-fi.com/ewancroft)!
-
-## Project Structure
-
-```plaintext
-bluesky-moon-tracker/
-│
-├── src/
-│   ├── config.env                # Environment configuration file
-│   ├── index.ts                  # Main script for the bot, orchestrates the bot's operations
-│   ├── services/
-│   │   ├── blueskyService.ts     # Handles Bluesky login and posting
-│   │   └── moonPhaseService.ts   # Fetches moon phase data from the API
-│   ├── core/
-│   │   ├── moonPhaseConstants.ts
-│   │   ├── moonPhaseMessages.ts     # Generates playful moon messages
-│   │   └── timeUtils.ts          # Utility functions for time calculations
-│
-├── package.json                  # Node.js project metadata and dependencies
-└── README.md                     # This README file
-```
-
-## Explanation of Files
-
-### `src/config.env`
-
-This file stores the Bluesky credentials required to log in and post. Please make sure you keep this file secure and do not share it publicly.
-
-### `src/index.ts`
-
-This is the main script that orchestrates the bot's functionality, including loading environment variables and scheduling daily posts.
-
-### `src/services/blueskyService.ts`
-
-This file handles the authentication with Bluesky and the actual posting of messages.
-
-### `src/services/moonPhaseService.ts`
-
-This file is responsible for fetching the current moon phase data from the Farmsense API.
-
-### `src/core/moonPhaseConstants.ts`
-
-This file contains constants related to moon phases, such as emojis and hashtags.
-
-### `src/core/moonPhaseMessages.ts`
-
-This file contains the logic for generating the playful moon phase messages, including the various phrases and conditional flair.
-
-### `src/core/timeUtils.ts`
-
-This file provides utility functions related to time calculations, specifically for scheduling the daily posts.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

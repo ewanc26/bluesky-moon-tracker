@@ -86,10 +86,12 @@ src/
 - Ollama is optional. If it is not configured or unavailable, the bot uses template messages instead.
 - The bot is intended to be run continuously as a background process or service.
 
-## License
+Run the bot with Cargo:
 
-This project is licensed under the MIT License. Please take a look at the [LICENSE](LICENSE) file for more details.
+```sh
+cargo run
+```
 
-## ☕ Support
+Or run the release binary directly:
 
 If you found this useful, consider [buying me a ko-fi](https://ko-fi.com/ewancroft)!

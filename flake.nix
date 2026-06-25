@@ -1,5 +1,7 @@
 {
   description = "bluesky-moon-tracker — daily moon phase bot for Bluesky";
+  # Nix flake for reproducible builds and dev shells. Uses rust-overlay to pin
+  # the Rust toolchain independently of nixpkgs, avoiding channel mismatches.
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
@@ -39,6 +41,7 @@
           };
         in
         {
+          # Dev shell: Rust toolchain + OpenSSL for reqwest TLS
           default = pkgs.mkShell {
             packages = with pkgs; [
               rust-bin.stable.latest.default

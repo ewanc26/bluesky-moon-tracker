@@ -1,4 +1,4 @@
-//! Environment configuration.
+//! Environment configuration — loaded from .env or process env at startup.
 
 #[derive(Debug)]
 pub struct Config {
@@ -12,6 +12,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Read configuration from environment variables, with sensible defaults.
     pub fn from_env() -> Self {
         Self {
             bluesky_username: std::env::var("BLUESKY_USERNAME").ok(),
@@ -30,6 +31,7 @@ impl Config {
         }
     }
 
+    /// Both username and password must be present to post.
     pub fn has_credentials(&self) -> bool {
         self.bluesky_username.is_some() && self.bluesky_password.is_some()
     }

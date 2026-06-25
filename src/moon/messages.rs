@@ -9,6 +9,7 @@ use super::constants::{
     PRIDE_REFERENCES, MoonPhase, PHASE_CONFIG,
 };
 
+/// A generated post with its embedded hashtag and a tag identifying the message source.
 #[derive(Debug)]
 pub struct MoonMessage {
     pub message: String,
@@ -16,6 +17,9 @@ pub struct MoonMessage {
     pub source: String,
 }
 
+// ─── Template Generation ───────────────────────────
+
+/// Build the core post text: phase name, emoji, illumination percentage, and a lycanthropic quip.
 fn get_base_message(phase: MoonPhase, illumination: f64) -> String {
     let illum = format!("{:.1}", illumination * 100.0);
     let config = &PHASE_CONFIG[&phase];
@@ -39,6 +43,8 @@ fn get_base_message(phase: MoonPhase, illumination: f64) -> String {
     format!("{} {} {}", config.emoji, base, lycanthropic)
 }
 
+/// Roll for month flairs, British asides, and (in June) Pride references.
+/// Each category triggers independently at its configured probability.
 fn get_additional_messages(month_index: usize) -> Vec<String> {
     let mut rng = rand::rng();
     let month_name = MONTH_NAMES[month_index];
@@ -92,6 +98,8 @@ fn truncate_message(message: &str, max: usize) -> String {
     truncated
 }
 
+/// Assemble a post from the template system: base message + optional extras + hashtag,
+/// then truncate to stay within Bluesky's length limit.
 fn generate_template_message(phase: MoonPhase, illumination: f64, month_index: usize) -> MoonMessage {
     let config = &PHASE_CONFIG[&phase];
     let base = get_base_message(phase, illumination);
@@ -111,13 +119,15 @@ fn generate_template_message(phase: MoonPhase, illumination: f64, month_index: u
     }
 }
 
-// --- Ollama integration ---
+// ─── Ollama Integration ────────────────────────────
 
 #[derive(serde::Deserialize)]
 struct OllamaResponse {
     response: String,
 }
 
+/// System prompt injected into Ollama for AI-generated posts.
+/// Instructs the model on tone (lycanthropic, British, pagan), constraints, and output format.
 fn build_ollama_prompt(phase: &str, illumination: f64, month_name: &str, hashtag: &str) -> String {
     let illum_pct = format!("{:.1}", illumination * 100.0);
     format!(

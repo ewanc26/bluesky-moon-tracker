@@ -5,6 +5,7 @@ use super::constants::MoonPhase;
 
 const TIMEOUT_MS: u64 = 10_000;
 
+/// Unified moon-phase result, regardless of the data source.
 #[derive(Debug)]
 pub struct MoonPhaseData {
     pub phase: MoonPhase,
@@ -14,6 +15,8 @@ pub struct MoonPhaseData {
 
 // --- Skytime API ---
 
+/// Query the Skytime public API for today's moon phase.
+/// Returns `None` if the API is unreachable, malformed, or returns no matching entry.
 async fn fetch_skytime(client: &reqwest::Client) -> Option<MoonPhaseData> {
     let now = chrono::Utc::now();
     let year = now.format("%Y").to_string();
@@ -107,6 +110,7 @@ async fn fetch_skytime(client: &reqwest::Client) -> Option<MoonPhaseData> {
 
 // --- Local fallback ---
 
+/// Local fallback using the Meeus-based calculation. Always succeeds.
 fn fetch_local() -> MoonPhaseData {
     let result = calc::calculate_moon_phase(None);
     println!(

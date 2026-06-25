@@ -5,6 +5,8 @@ use tokio::time::{sleep_until, Instant};
 
 use crate::bluesky::BlueskyService;
 
+/// Schedules one post per UTC day, sleeping until midnight between runs.
+/// Listens for SIGINT so the loop exits cleanly on Ctrl-C.
 pub struct PostScheduler {
     running: bool,
 }
@@ -14,6 +16,7 @@ impl PostScheduler {
         Self { running: false }
     }
 
+    /// Enter the post-every-midnight loop. Blocks until SIGINT or the process is killed.
     pub async fn start(
         &mut self,
         service: &BlueskyService,

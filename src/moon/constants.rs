@@ -1,4 +1,12 @@
+//! Phase type, aliases, display config, and message copy.
+//!
+//! This is where the personality lives — lycanthropic quips, British asides,
+//! Pride month references, and month-specific flairs live here alongside the
+//! phase enum and its string-to-enum parser.
+
 use std::collections::HashMap;
+
+// ─── Lunar Phases ───────────────────────────────────
 
 /// The 8 canonical lunar phases.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -47,6 +55,7 @@ impl MoonPhase {
     }
 
     /// Normalise a raw phase string (from an API or alias) into a canonical phase.
+    /// Falls back to alias lookup for kebab-case, folk names, and common abbreviations.
     pub fn from_str_loose(raw: &str) -> Result<MoonPhase, String> {
         // Direct canonical match
         for phase in Self::ALL {
@@ -73,6 +82,8 @@ impl MoonPhase {
     }
 }
 
+// ─── Phase Aliasing ─────────────────────────────────
+
 pub const MONTH_NAMES: [&str; 12] = [
     "January",
     "February",
@@ -88,7 +99,9 @@ pub const MONTH_NAMES: [&str; 12] = [
     "December",
 ];
 
-/// Alias → canonical phase mapping.
+/// Maps external API strings and folk names to the canonical phase.
+/// Includes Skytime kebab-case, short names, quarter variants, and full-moon folk names
+/// (Wolf Moon, Strawberry Moon, etc.).
 pub static PHASE_ALIASES: &[(&str, MoonPhase)] = &[
     ("Dark Moon", MoonPhase::NewMoon),
     ("New", MoonPhase::NewMoon),
@@ -130,6 +143,9 @@ pub static PHASE_ALIASES: &[(&str, MoonPhase)] = &[
     ("Cold Moon", MoonPhase::FullMoon),
 ];
 
+// ─── Display Config ────────────────────────────────────
+
+/// Emoji + hashtag pair for each moon phase, used when building the post.
 pub struct PhaseConfig {
     pub emoji: &'static str,
     pub hashtag: &'static str,
@@ -150,6 +166,9 @@ pub static PHASE_CONFIG: LazyLock<HashMap<MoonPhase, PhaseConfig>> = LazyLock::n
     m
 });
 
+// ─── Personality Copy ───────────────────────────────────
+
+/// Lycanthropic quips — the bot's core voice layer.
 pub static LYCANTHROPIC_PHRASES: &[&str] = &[
     "Awooo!",
     "Call of the wild is strong tonight.",
@@ -168,6 +187,7 @@ pub static LYCANTHROPIC_PHRASES: &[&str] = &[
     "The night belongs to the moon.",
 ];
 
+/// British-flavoured asides — splashed in roughly half the posts for character.
 pub static BRITISH_REFERENCES: &[&str] = &[
     "Fancy a cuppa under its glow?",
     "Right then, moonlit stroll.",
@@ -185,6 +205,7 @@ pub static BRITISH_REFERENCES: &[&str] = &[
     "Mind the gap, and the moon's glow.",
 ];
 
+/// Pride-themed references — heavy rotation in June, available year-round.
 pub static PRIDE_REFERENCES: &[&str] = &[
     "Love wins, even under the moon!",
     "Shine bright, shine proud!",
@@ -275,6 +296,9 @@ pub static MONTH_FLAIRS: LazyLock<HashMap<&'static str, &'static [&'static str]>
     m
 });
 
+// ─── Message Limits ─────────────────────────────────────
+
+/// Configuration for message assembly: character cap, truncation, and copy probabilities.
 pub struct MessageConfig {
     pub max_length: usize,
     pub truncate_suffix: &'static str,

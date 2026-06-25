@@ -21,7 +21,10 @@ pub struct BlueskyService {
     ollama_timeout: Option<u64>,
 }
 
+// ─── Connection & Posting ───────────────────────────────
+
 impl BlueskyService {
+    /// Wire up the AT Protocol agent with an XRPC client pointing at the given PDS.
     pub fn new(
         pds_url: &str,
         http_client: reqwest::Client,
@@ -40,12 +43,15 @@ impl BlueskyService {
         }
     }
 
+    /// Authenticate with the Bluesky PDS using a handle (or email) and app password.
     pub async fn login(&self, username: &str, password: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.agent.login(username, password).await?;
         println!("Successfully logged in to Bluesky");
         Ok(())
     }
 
+    /// Fetch moon data, generate a message, then post it to Bluesky via the AT Protocol.
+    /// The hashtag is rendered as a clickable facet rather than plain text.
     pub async fn post_moon_phase(&self, username: &str, password: &str) -> Result<(), Box<dyn std::error::Error>> {
         println!("Attempting to post moon phase to Bluesky");
         self.login(username, password).await?;
@@ -65,7 +71,7 @@ impl BlueskyService {
         )
         .await;
 
-        // Build facets for the hashtag
+        // Build rich-text facets so the hashtag is clickable in Bluesky clients
         let facets = build_hashtag_facets(&msg.message, &msg.hashtag);
 
         let en_lang = Language::from_str("en").expect("valid language tag");

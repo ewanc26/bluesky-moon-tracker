@@ -1,3 +1,5 @@
+# Pre-commit hook: auto-format non-Rust files with Prettier.
+# Rust formatting is handled by rustfmt via the toolchain.
 repos:
   - repo: local
     hooks:

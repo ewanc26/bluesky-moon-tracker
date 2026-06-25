@@ -1,3 +1,5 @@
+//! Bluesky moon phase bot — entry point and run-mode dispatcher.
+
 mod bluesky;
 mod config;
 mod moon;
@@ -7,7 +9,6 @@ use config::Config;
 
 #[tokio::main]
 async fn main() {
-    // Load .env file
     dotenvy::dotenv().ok();
 
     let config = Config::from_env();
@@ -32,6 +33,8 @@ async fn main() {
     }
 }
 
+// ─── Run Dispatcher ─────────────────────────────────────
+
 async fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     if config.debug_mode {
         run_debug_mode(&config).await
@@ -39,6 +42,9 @@ async fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
         run_production_mode(&config).await
     }
 }
+
+// ─── Debug Mode ─────────────────────────────────────────
+/// Post immediately (with credentials) or print sample messages (without).
 
 async fn run_debug_mode(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     if config.has_credentials() {
@@ -63,6 +69,9 @@ async fn run_debug_mode(config: &Config) -> Result<(), Box<dyn std::error::Error
     }
     Ok(())
 }
+
+// ─── Production Mode ─────────────────────────────────────
+/// Run the scheduler loop, posting once per UTC day.
 
 async fn run_production_mode(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     if !config.has_credentials() {

@@ -16,6 +16,8 @@ chrono = "0.4"
 rand = "0.9"
 dotenvy = "0.15"
 
+# ─── Release Profile ─────────────────────────────────────
+# Optimise for size: this is a single-binary bot deployed to a small server.
 [profile.release]
 opt-level = "z"
 lto = true

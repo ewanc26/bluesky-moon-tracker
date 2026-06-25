@@ -11,6 +11,10 @@ use super::constants::MoonPhase;
 const SYNODIC_PERIOD: f64 = 29.530588853;
 const KNOWN_NEW_MOON_JD: f64 = 2451550.1; // 6 Jan 2000 18:14 UTC
 
+// ─── Julian Day ────────────────────────────────────────
+
+/// Convert a UTC datetime to a Julian Day number. Uses the Gregorian calendar
+/// proleptically, which is fine for dates after the reform.
 fn date_to_julian_day(date: &chrono::DateTime<chrono::Utc>) -> f64 {
     let mut year = date.year() as f64;
     let mut month = date.month() as i32;
@@ -32,11 +36,17 @@ fn date_to_julian_day(date: &chrono::DateTime<chrono::Utc>) -> f64 {
         - 1524.5
 }
 
+// ─── Moon Age ──────────────────────────────────────────
+
+/// Fraction of the current synodic cycle completed (0.0–1.0), where 0.0 = new moon.
 fn get_moon_age(julian_day: f64) -> f64 {
     let age = ((julian_day - KNOWN_NEW_MOON_JD) / SYNODIC_PERIOD) % 1.0;
     if age < 0.0 { age + 1.0 } else { age }
 }
 
+// ─── Phase & Illumination ─────────────────────────────
+
+/// Map synodic age (0–1) to one of the 8 canonical phases.
 fn age_to_phase(age: f64) -> MoonPhase {
     if age < 0.0625 || age >= 0.9375 {
         MoonPhase::NewMoon
@@ -57,6 +67,8 @@ fn age_to_phase(age: f64) -> MoonPhase {
     }
 }
 
+/// Approximate visible fraction from synodic age. Peaks at 1.0 for full moon,
+/// troughs at 0.0 for new. Shape is a cosine centred on the full moon.
 fn age_to_illumination(age: f64) -> f64 {
     (1.0 - (2.0 * std::f64::consts::PI * age).cos()) / 2.0
 }

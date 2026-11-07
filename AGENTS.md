@@ -20,4 +20,4 @@ a moon tracking bot for Bluesky
 
 ## Recent history
 
-Sync AGENTS.md from zincfox; Sync AGENTS.md from zincfox; Sync CONTRIBUTING.md from zincfox; Sync CONTRIBUTING.md from zincfox; Update config.yml issue template
+Update config.yml issue template

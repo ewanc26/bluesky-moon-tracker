@@ -18,6 +18,12 @@ a moon tracking bot for Bluesky
 - Use feature branches and pull requests.
 - Treat generated files, credentials, deployment configuration, and release metadata as sensitive.
 
+## File naming
+
+Source files are named `<scope>/<atom>.<ext>`. The directory is the scope: the module, feature or layer the code belongs to. The file name is one atom: one concept, named in lowercase words joined by `_`. Use the language's own extension: `.c` and `.h` for C, `.cpp` and `.hpp` for C++, and the usual one for other languages. Pair an interface with its implementation under the same atom name (`scope/atom.h` with `scope/atom.c`). Avoid catch-all names such as `utils`, `misc`, `common2` or `helpers_final`.
+
+Apply this to new files, and to a file you are already restructuring. Don't rename existing files only to satisfy it.
+
 ## Recent history
 
 Update config.yml issue template

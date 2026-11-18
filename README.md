@@ -1,5 +1,7 @@
 # Bluesky Moon Tracker
 
+[![Licence](https://img.shields.io/github/license/ewanc26/bluesky-moon-tracker?label=licence)](LICENSE)
+[![Sponsor](https://img.shields.io/github/sponsors/ewanc26?logo=githubsponsors&logoColor=white&label=sponsors)](https://github.com/sponsors/ewanc26)
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
 **_This repository is available on [GitHub](https://github.com/ewanc26/bluesky-moon-tracker) and [Tangled](https://tangled.sh/did:plc:ofrbh253gwicbkc5nktqepol/bluesky-moon-tracker). GitHub is the primary version, and the Tangled version is a mirror._**
@@ -100,3 +102,11 @@ If you found this useful, consider [buying me a ko-fi](https://ko-fi.com/ewancro
 If you find this project useful, consider supporting its development:
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/ewancroft)
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-30363D?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sponsors/ewanc26)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and the checks required before opening a pull request.
+
+## Licence
+
+See [LICENSE](LICENSE) for the licence terms.

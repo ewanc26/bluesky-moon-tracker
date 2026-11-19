@@ -4,7 +4,7 @@ Guidance for AI coding agents working in **bluesky-moon-tracker**.
 
 ## Project overview
 
-a moon tracking bot for Bluesky
+A moon tracking bot for Bluesky
 
 - Language: Rust
 - Default branch: main

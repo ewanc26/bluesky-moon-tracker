@@ -1,5 +1,8 @@
 # Bluesky Moon Tracker
 
+[![Licence](https://img.shields.io/github/license/ewanc26/bluesky-moon-tracker?label=licence)](LICENSE)
+[![Sponsor](https://img.shields.io/github/sponsors/ewanc26?logo=githubsponsors&logoColor=white&label=sponsors)](https://github.com/sponsors/ewanc26)
+
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
 **_This repository is available on [GitHub](https://github.com/ewanc26/bluesky-moon-tracker) and [Tangled](https://tangled.sh/did:plc:ofrbh253gwicbkc5nktqepol/bluesky-moon-tracker). GitHub is the primary version, and the Tangled version is a mirror._**
@@ -43,7 +46,8 @@ OLLAMA_TIMEOUT=30000
 - `BLUESKY_PDS_URL` — optional PDS URL, defaults to `https://bsky.social`
 - `DEBUG_MODE` — set to `true` to print sample messages or post immediately when credentials are present
 - `OLLAMA_MODEL` — enables Ollama generation when set
-- `OLLAMA_URL` — Ollama server URL, defaults to `http://localhost:11434`
+- `OLLAMA_URL` —
+ Ollama server URL, defaults to `http://localhost:11434`
 - `OLLAMA_TIMEOUT` — request timeout in milliseconds, defaults to `30000`
 
 ## Usage
@@ -101,3 +105,11 @@ If you find this project useful, consider supporting its development:
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/ewancroft)
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-30363D?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sponsors/ewanc26)
 [![Liberapay](https://img.shields.io/badge/Liberapay-A60000?style=for-the-badge&logo=liberapay&logoColor=white)](https://liberapay.com/ewanc26/)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and the checks required before opening a pull request.
+
+## Licence
+
+See [LICENSE](LICENSE) for the licence terms.

@@ -46,8 +46,7 @@ OLLAMA_TIMEOUT=30000
 - `BLUESKY_PDS_URL` — optional PDS URL, defaults to `https://bsky.social`
 - `DEBUG_MODE` — set to `true` to print sample messages or post immediately when credentials are present
 - `OLLAMA_MODEL` — enables Ollama generation when set
-- `OLLAMA_URL` —
- Ollama server URL, defaults to `http://localhost:11434`
+- `OLLAMA_URL` — Ollama server URL, defaults to `http://localhost:11434`
 - `OLLAMA_TIMEOUT` — request timeout in milliseconds, defaults to `30000`
 
 ## Usage

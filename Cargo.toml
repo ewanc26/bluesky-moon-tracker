@@ -13,7 +13,7 @@ reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = "0.4"
-rand = "0.9"
+rand = "0.10"
 dotenvy = "0.15"
 
 # ─── Release Profile ─────────────────────────────────────

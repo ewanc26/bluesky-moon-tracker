@@ -1,0 +1,16 @@
+version: 2
+# Dependabot version-update config for bluesky-moon-tracker.
+#
+# A 7-day cooldown lets newly published releases age so compromised
+# versions are usually yanked before we adopt them. Security updates
+# are never delayed. Auto-merge is intentionally disabled.
+
+updates:
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5

@@ -1,5 +1,6 @@
 [package]
 name = "bluesky-moon-tracker"
+authors = ["Ewan Croft (ewanc26)"]
 version = "1.0.0"
 description = "A Bluesky moon phase bot — lycanthropic, British, and slightly pagan."
 license = "MIT"

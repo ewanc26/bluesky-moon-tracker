@@ -1,7 +1,7 @@
 //! Moon phase message generation — template-based with optional Ollama fallback.
 
 use rand::prelude::IndexedRandom;
-use rand::Rng;
+use rand::RngExt;
 use rand::seq::SliceRandom;
 
 use super::constants::{

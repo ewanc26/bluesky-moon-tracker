@@ -7,14 +7,14 @@ license = "MIT"
 edition = "2024"
 
 [dependencies]
-atrium-api = { version = "0.25", default-features = false, features = ["agent", "bluesky"] }
+atrium-api = { version = "0.26", default-features = false, features = ["agent", "bluesky"] }
 atrium-xrpc-client = { version = "0.5", default-features = false, features = ["reqwest-default-tls"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time"] }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = "0.4"
-rand = "0.9"
+rand = "0.10"
 dotenvy = "0.15"
 
 # ─── Release Profile ─────────────────────────────────────
